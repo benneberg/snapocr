@@ -1,6 +1,3 @@
-
-
-```markdown
 # 📸 SnapOCR — Intelligent Signage Operations Platform
 
 **Version:** 2.0.0  
