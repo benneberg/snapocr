@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapOCR - Intelligent Signage Operations</title>
+    <title>SnapOps â Intelligent Operations Platform</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --primary-color: #10b981;
@@ -14,6 +14,7 @@
             --secondary-color: #34d399;
             --success-color: #10b981;
             --danger-color: #ef4444;
+            --warning-color: #f59e0b;
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
             --bg-primary: #ffffff;
@@ -22,14 +23,14 @@
             --border-color: #e5e7eb;
             --shadow: rgba(0, 0, 0, 0.1);
         }
-        
-        /* Dark mode variables */
+
         body.dark-mode {
             --primary-color: #10b981;
             --primary-dark: #059669;
             --secondary-color: #34d399;
             --success-color: #10b981;
             --danger-color: #ef4444;
+            --warning-color: #f59e0b;
             --text-primary: #f9fafb;
             --text-secondary: #9ca3af;
             --bg-primary: #111827;
@@ -38,7 +39,7 @@
             --border-color: #374151;
             --shadow: rgba(0, 0, 0, 0.3);
         }
-        
+
         body {
             background: var(--bg-primary);
             color: var(--text-primary);
@@ -46,30 +47,45 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             transition: background-color 0.3s, color 0.3s;
         }
-        
+
+        /* Subtle animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+            animation: gridMove 60s linear infinite;
+        }
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
+        }
+
         .navbar {
             background: var(--bg-card) !important;
-            backdrop-filter: blur(6px);
+            backdrop-filter: blur(8px);
             box-shadow: 0 1px 3px var(--shadow);
             border-bottom: 1px solid var(--border-color);
         }
-        
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
-            color: var(--text-primary);
+            color: var(--text-primary) !important;
         }
-        
         .nav-link {
             color: var(--text-secondary) !important;
             transition: color 0.3s;
             font-weight: 500;
         }
-        
         .nav-link:hover, .nav-link.active {
             color: var(--primary-color) !important;
         }
-        
+
         .settings-icon {
             position: fixed;
             top: 80px;
@@ -85,17 +101,14 @@
             box-shadow: 0 4px 12px var(--shadow);
             transition: all 0.3s;
             z-index: 1000;
+            border: none;
         }
-        
         .settings-icon:hover {
             background: var(--primary-dark);
             transform: scale(1.1);
         }
-        
-        .settings-icon i {
-            color: white;
-        }
-        
+        .settings-icon i { color: white; }
+
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -103,16 +116,14 @@
             box-shadow: 0 1px 3px var(--shadow);
             transition: transform 0.3s, box-shadow 0.3s;
         }
-        
-        .card-body, .card-body h3, .card-body p, .card-body h4, .card-body h5 {
-            color: var(--text-primary);
-        }
-        
         .card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px var(--shadow);
         }
-        
+        .card-body, .card-body h3, .card-body p, .card-body h4, .card-body h5 {
+            color: var(--text-primary);
+        }
+
         .upload-zone {
             border: 2px dashed var(--primary-color);
             border-radius: 12px;
@@ -121,18 +132,28 @@
             cursor: pointer;
             transition: all 0.3s;
             background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
         }
-        
         .upload-zone:hover {
             background: rgba(16, 185, 129, 0.1);
             border-color: var(--primary-dark);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
         }
-        
         .upload-zone.dragover {
             background: rgba(16, 185, 129, 0.2);
             border-color: var(--primary-color);
+            animation: pulseBorder 1s infinite;
         }
-        
+        @keyframes pulseBorder {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        }
+        .upload-zone.has-image {
+            border-style: solid;
+            background: rgba(16, 185, 129, 0.08);
+        }
+
         .btn-primary {
             background: var(--primary-color);
             border: none;
@@ -142,33 +163,22 @@
             transition: all 0.3s;
             color: white;
         }
-        
         .btn-primary:hover {
             background: var(--primary-dark);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
-        
-        .btn-success {
-            background: var(--success-color);
-            border: none;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: var(--primary-dark);
-        }
-        
-        .btn.disabled, .btn:disabled, fieldset:disabled .btn {
-            background-color: var(--text-secondary);
-            border-color: var(--border-color);
+        .btn-success { background: var(--success-color); border: none; color: white; }
+        .btn-success:hover { background: var(--primary-dark); }
+        .btn:disabled, .btn.disabled {
+            background-color: var(--text-secondary) !important;
+            border-color: var(--border-color) !important;
             opacity: 0.5;
+            cursor: not-allowed;
         }
-        
-        .text-muted {
-            color: var(--text-secondary) !important;
-        }
-        
+
+        .text-muted { color: var(--text-secondary) !important; }
+
         .action-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -179,18 +189,16 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
         .action-card:hover {
             border-left-color: var(--primary-dark);
             background: var(--bg-secondary);
             transform: translateX(5px);
         }
-        
         .action-card.selected {
             border-left-color: var(--success-color);
             background: rgba(16, 185, 129, 0.1);
         }
-        
+
         .action-list-item {
             padding: 0.75rem 1rem;
             margin-bottom: 0.25rem;
@@ -201,17 +209,19 @@
             justify-content: space-between;
             align-items: center;
             background: var(--bg-secondary);
+            border: 1px solid transparent;
         }
-        
-        .action-list-item:hover {
+        .action-list-item:hover, .action-list-item:focus {
             background: rgba(16, 185, 129, 0.1);
+            outline: 2px solid var(--primary-color);
+            outline-offset: 1px;
         }
-        
         .action-list-item.selected {
             background: rgba(16, 185, 129, 0.2);
             font-weight: 600;
+            border-color: var(--primary-color);
         }
-        
+
         .tag {
             display: inline-block;
             padding: 0.25rem 0.75rem;
@@ -221,14 +231,13 @@
             margin-right: 0.5rem;
             margin-bottom: 0.25rem;
         }
-        
         .tag-error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
         .tag-content { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
         .tag-log { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
         .tag-provision { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .tag-network { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
         .tag-hardware { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
-        
+
         .device-badge {
             display: inline-block;
             padding: 0.5rem 1rem;
@@ -239,7 +248,7 @@
             margin-right: 0.5rem;
             border: 1px solid var(--primary-color);
         }
-        
+
         .filter-chip {
             padding: 0.5rem 1rem;
             border-radius: 20px;
@@ -252,13 +261,16 @@
             margin-right: 0.5rem;
             margin-bottom: 0.5rem;
         }
-        
         .filter-chip.active {
             background: var(--primary-color);
             color: white;
             border-color: var(--primary-color);
         }
-        
+        .filter-chip:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
         .master-triage {
             background: rgba(16, 185, 129, 0.1);
             border: 2px solid var(--primary-color);
@@ -266,7 +278,7 @@
             border-radius: 12px;
             margin-bottom: 1rem;
         }
-        
+
         .code-detected {
             background: rgba(16, 185, 129, 0.1);
             border: 2px solid var(--success-color);
@@ -274,14 +286,14 @@
             border-radius: 8px;
             margin-top: 1rem;
         }
-        
+
         .workflow-container {
             background: var(--bg-secondary);
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 1rem;
         }
-        
+
         .action-pipeline {
             display: flex;
             align-items: center;
@@ -289,19 +301,17 @@
             flex-wrap: wrap;
             margin: 1rem 0;
         }
-        
         .pipeline-item {
             background: var(--bg-card);
             padding: 0.75rem 1rem;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        
-        .pipeline-arrow {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-        }
-        
+        .pipeline-arrow { color: var(--primary-color); font-size: 1.5rem; }
+
         .result-box {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -314,48 +324,28 @@
             line-height: 1.6;
             color: var(--text-primary);
         }
-        
-        .page-content {
-            display: none;
-        }
-        
-        .page-content.active {
-            display: block;
-        }
-        
+
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+
         .form-control, .form-select {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             border-radius: 8px;
         }
-        
         .form-control:focus, .form-select:focus {
             background: var(--bg-card);
             border-color: var(--primary-color);
             color: var(--text-primary);
             box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
         }
-        
-        .form-control::placeholder {
-            color: var(--text-secondary);
-        }
-        
-        .form-select option {
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-        
-        .progress {
-            height: 8px;
-            border-radius: 10px;
-            background: var(--bg-secondary);
-        }
-        
-        .progress-bar {
-            background: var(--primary-color);
-        }
-        
+        .form-control::placeholder { color: var(--text-secondary); }
+        .form-select option { background: var(--bg-card); color: var(--text-primary); }
+
+        .progress { height: 8px; border-radius: 10px; background: var(--bg-secondary); }
+        .progress-bar { background: var(--primary-color); transition: width 0.3s ease; }
+
         .model-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -366,21 +356,10 @@
             color: var(--text-primary);
             margin-bottom: 0.5rem;
         }
-        
-        .model-card:hover {
-            border-color: var(--primary-color);
-            background: rgba(16, 185, 129, 0.05);
-        }
-        
-        .model-card.selected {
-            border-color: var(--success-color);
-            background: rgba(16, 185, 129, 0.1);
-        }
-        
-        .nav-tabs {
-            border: none;
-        }
-        
+        .model-card:hover { border-color: var(--primary-color); background: rgba(16, 185, 129, 0.05); }
+        .model-card.selected { border-color: var(--success-color); background: rgba(16, 185, 129, 0.1); }
+
+        .nav-tabs { border: none; }
         .nav-tabs .nav-link {
             background: transparent;
             border: none;
@@ -388,113 +367,151 @@
             padding: 0.75rem 1.5rem;
             font-weight: 500;
         }
-        
         .nav-tabs .nav-link.active {
             background: transparent;
             color: var(--primary-color);
             border-bottom: 3px solid var(--primary-color);
         }
-        
-        .tab-content {
-            background: transparent;
-            padding: 1.5rem 0;
-        }
-        
+        .tab-content { background: transparent; padding: 1.5rem 0; }
+
         .modal-content {
             background: var(--bg-card);
             color: var(--text-primary);
         }
-        
-        .modal-header {
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .btn-close {
-            filter: invert(var(--text-primary));
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--text-primary);
-        }
-        
-        .badge {
-            font-weight: 600;
-        }
-        
-        .badge.bg-success {
-            background: var(--success-color) !important;
-        }
-        
-        .badge.bg-primary {
-            background: var(--primary-color) !important;
-        }
-        
+        .modal-header { border-bottom: 1px solid var(--border-color); }
+        .btn-close { filter: invert(0.5); }
+        body.dark-mode .btn-close { filter: invert(1); }
+
+        h1, h2, h3, h4, h5, h6 { color: var(--text-primary); }
+
+        .badge { font-weight: 600; }
+        .badge.bg-success { background: var(--success-color) !important; }
+        .badge.bg-primary { background: var(--primary-color) !important; }
         .badge.bg-info {
             background: rgba(16, 185, 129, 0.2) !important;
             color: var(--primary-color) !important;
         }
-        
-        .alert {
-            border-radius: 8px;
-        }
-        
+        .badge.bg-warning { background: var(--warning-color) !important; color: #111 !important; }
+        .badge.bg-danger { background: var(--danger-color) !important; }
+
+        .alert { border-radius: 8px; }
         .alert-success {
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid var(--success-color);
             color: var(--text-primary);
         }
-        
         .alert-danger {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid var(--danger-color);
             color: var(--text-primary);
         }
-        
         .alert-info {
             background: rgba(16, 185, 129, 0.05);
             border: 1px solid var(--primary-color);
             color: var(--text-primary);
         }
-        
+
         .form-check-input:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-        
-        .form-range::-webkit-slider-thumb {
-            background: var(--primary-color);
+        .form-range::-webkit-slider-thumb { background: var(--primary-color); }
+        .form-range::-moz-range-thumb { background: var(--primary-color); }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
-        
-        .form-range::-moz-range-thumb {
-            background: var(--primary-color);
+        .toast-notification {
+            min-width: 280px;
+            max-width: 400px;
+            padding: 0.85rem 1.2rem;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            opacity: 0;
+            transform: translateX(40px);
+            transition: all 0.3s ease;
+            color: var(--text-primary);
         }
-        
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast-success { border-left: 4px solid var(--success-color); }
+        .toast-error { border-left: 4px solid var(--danger-color); }
+        .toast-info { border-left: 4px solid var(--primary-color); }
+        .toast-warning { border-left: 4px solid var(--warning-color); }
+
+        /* Skeleton loader */
+        .skeleton-loader { animation: pulse 1.5s ease-in-out infinite; }
+        .skeleton-line {
+            height: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+
+        /* Markdown-ish result rendering */
+        .result-markdown h4, .result-markdown h5 { margin-top: 0.75rem; margin-bottom: 0.35rem; }
+        .result-markdown ul { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+        .result-markdown li { margin-bottom: 0.25rem; }
+        .result-markdown strong { color: var(--primary-color); }
+
+        /* Theme toggle */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .theme-toggle:hover { background: rgba(16, 185, 129, 0.15); }
+        .theme-toggle i { color: var(--text-secondary); font-size: 1.1rem; }
+
         @media (max-width: 768px) {
-            .upload-zone {
-                padding: 2rem 1rem;
-            }
-            .card {
-                margin-bottom: 1rem;
-            }
-            .settings-icon {
-                width: 45px;
-                height: 45px;
-                top: 70px;
-            }
+            .upload-zone { padding: 2rem 1rem; }
+            .card { margin-bottom: 1rem; }
+            .settings-icon { width: 45px; height: 45px; top: 70px; right: 12px; }
+            .action-pipeline { flex-direction: column; align-items: stretch; }
+            .pipeline-arrow { transform: rotate(90deg); margin: 0.35rem 0; text-align: center; }
+            .toast-container { left: 12px; right: 12px; }
+            .toast-notification { min-width: auto; max-width: none; }
+        }
+        @media (max-width: 576px) {
+            .navbar-brand { font-size: 1.25rem; }
+            .btn { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .upload-zone { padding: 1.5rem 1rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Settings Cog Icon -->
-    <div class="settings-icon" onclick="openSettingsModal()" title="Settings">
-        <i class="fas fa-cog fa-lg" style="color: white;"></i>
-    </div>
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <!-- Settings Cog -->
+    <button class="settings-icon" onclick="openSettingsModal()" aria-label="Open Settings" title="Settings">
+        <i class="fas fa-cog fa-lg"></i>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><i class="fas fa-eye"></i> SnapOCR</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <a class="navbar-brand" href="#"><i class="fas fa-eye"></i> SnapOps</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -509,7 +526,7 @@
                         <a class="nav-link" href="#" data-page="tools"><i class="fas fa-toolbox"></i> Tools</a>
                     </li>
                     <li class="nav-item">
-                        <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                        <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode" role="button" tabindex="0" aria-label="Toggle dark mode">
                             <i class="fas fa-moon" id="theme-icon"></i>
                         </div>
                     </li>
@@ -518,139 +535,178 @@
         </div>
     </nav>
 
-    <!-- Main Container -->
     <div class="container-fluid py-4">
-        
-        <!-- QUICK MODE PAGE -->
+
+        <!-- ==================== QUICK MODE ==================== -->
         <div id="home-page" class="page-content active">
             <div class="row">
                 <div class="col-12 text-center mb-4">
-                    <h1 class="display-4 fw-bold">Intelligent Signage Operations</h1>
-                    <p class="lead">Autonomous watchguard for digital signage infrastructure</p>
+                    <h1 class="display-5 fw-bold">Intelligent Signage Operations</h1>
+                    <p class="lead text-muted">Autonomous watchguard for digital signage infrastructure</p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <span class="badge bg-info"><i class="fas fa-robot me-1"></i> OCR + AI Triage</span>
+                        <span class="badge bg-info"><i class="fas fa-cogs me-1"></i> Workflow Automation</span>
+                        <span class="badge bg-info"><i class="fas fa-key me-1"></i> Provisioning Codes</span>
+                    </div>
                 </div>
             </div>
-            
+
             <div class="row g-4">
-                <!-- Upload & Extract Section -->
+                <!-- Left: Upload / Extract / Manual -->
                 <div class="col-lg-6">
                     <div class="card h-100">
                         <div class="card-body">
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="upload-tab" data-bs-toggle="tab" href="#upload-panel">
-                                        <i class="fas fa-upload"></i> Upload Screenshot
+                                    <a class="nav-link active" id="upload-tab" data-bs-toggle="tab" href="#upload-panel" role="tab">
+                                        <i class="fas fa-upload"></i> Upload
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="extracted-tab" data-bs-toggle="tab" href="#extracted-panel">
+                                    <a class="nav-link" id="manual-tab" data-bs-toggle="tab" href="#manual-panel" role="tab">
+                                        <i class="fas fa-keyboard"></i> Manual Text
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="extracted-tab" data-bs-toggle="tab" href="#extracted-panel" role="tab">
                                         <i class="fas fa-file-alt"></i> Extracted Text
                                     </a>
                                 </li>
                             </ul>
-                            
+
                             <div class="tab-content">
-                                <div class="tab-pane fade show active" id="upload-panel">
-                                    <div id="upload-zone" class="upload-zone mt-3">
+                                <!-- Upload panel -->
+                                <div class="tab-pane fade show active" id="upload-panel" role="tabpanel">
+                                    <div id="upload-zone" class="upload-zone mt-3" role="button" tabindex="0" aria-label="Upload screenshot">
                                         <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary-color);"></i>
-                                        <h5>Click to browse or drag & drop</h5>
-                                        <small>Auto-detects device type from filename</small>
-                                        <input type="file" id="image-input" accept="image/*" style="display: none;">
+                                        <h5 class="mt-2">Click to browse or drag & drop</h5>
+                                        <small class="text-muted">Auto-detects device type from content</small>
+                                        <input type="file" id="image-input" accept="image/*" style="display: none;" aria-hidden="true">
                                     </div>
-                                    
+
                                     <div id="image-preview" class="mt-3 text-center" style="display: none;">
-                                        <img id="preview-img" class="img-fluid rounded" style="max-height: 300px;">
+                                        <img id="preview-img" class="img-fluid rounded" style="max-height: 280px;" alt="Screenshot preview">
                                         <button id="clear-image" class="btn btn-danger btn-sm mt-2">
                                             <i class="fas fa-times"></i> Clear
                                         </button>
                                     </div>
-                                    
+
+                                    <div class="form-check form-switch mt-3">
+                                        <input class="form-check-input" type="checkbox" id="enable-quick-triage">
+                                        <label class="form-check-label" for="enable-quick-triage">
+                                            <i class="fas fa-robot me-1"></i> Run Master Triage after OCR
+                                        </label>
+                                    </div>
+
                                     <button id="extract-btn" class="btn btn-primary w-100 mt-3" disabled>
                                         <i class="fas fa-magic"></i> Extract Text (OCR)
                                     </button>
-                                    
+
                                     <div id="ocr-progress" class="mt-3" style="display: none;">
                                         <div class="d-flex justify-content-between mb-2">
-                                            <span>Processing...</span>
+                                            <span>Processingâ¦</span>
                                             <span id="progress-percent">0%</span>
                                         </div>
                                         <div class="progress">
-                                            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="tab-pane fade" id="extracted-panel">
+
+                                <!-- Manual text panel -->
+                                <div class="tab-pane fade" id="manual-panel" role="tabpanel">
+                                    <div class="mt-3">
+                                        <label class="form-label">Paste log / error text / console output</label>
+                                        <textarea id="manual-text-input" class="form-control" rows="10" placeholder="Paste any text here (player logs, error screens, remote session outputâ¦)"></textarea>
+                                        <button id="use-manual-text-btn" class="btn btn-primary w-100 mt-3">
+                                            <i class="fas fa-check"></i> Use This Text
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Extracted text panel -->
+                                <div class="tab-pane fade" id="extracted-panel" role="tabpanel">
                                     <div id="triage-info" style="display: none; margin-top: 1rem;">
                                         <div class="master-triage">
-                                            <h5 style="color: white; margin-bottom: 0.5rem;">
-                                                <i class="fas fa-robot me-2"></i>Master Triage
-                                            </h5>
+                                            <h5 class="mb-2"><i class="fas fa-robot me-2"></i>Master Triage</h5>
                                             <div id="device-info"></div>
-                                            <div id="category-info" style="margin-top: 0.5rem;"></div>
+                                            <div id="category-info" class="mt-2"></div>
                                         </div>
                                     </div>
-                                    
                                     <div id="extracted-text" class="result-box mt-3">
-                                        <p class="text-center">Text will appear here after extraction.</p>
+                                        <p class="text-center text-muted">Text will appear here after extraction or manual input.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Task Runner & Results Section -->
+
+                <!-- Right: Task Runner / Results -->
                 <div class="col-lg-6">
                     <div class="card h-100">
                         <div class="card-body">
                             <ul class="nav nav-tabs" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="taskrunner-tab" data-bs-toggle="tab" href="#taskrunner-panel">
+                                    <a class="nav-link active" id="taskrunner-tab" data-bs-toggle="tab" href="#taskrunner-panel" role="tab">
                                         <i class="fas fa-tasks"></i> Task Runner
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="results-tab" data-bs-toggle="tab" href="#results-panel">
-                                        <i class="fas fa-clipboard-list"></i> Execution Results
+                                    <a class="nav-link" id="results-tab" data-bs-toggle="tab" href="#results-panel" role="tab">
+                                        <i class="fas fa-clipboard-list"></i> Results
                                     </a>
                                 </li>
                             </ul>
-                            
+
                             <div class="tab-content">
-                                <div class="tab-pane fade show active" id="taskrunner-panel">
+                                <div class="tab-pane fade show active" id="taskrunner-panel" role="tabpanel">
                                     <div class="mt-3">
-                                        <h5>Filter Actions</h5>
+                                        <!-- Workflow quick-run -->
                                         <div class="mb-3">
-                                            <button class="filter-chip active" data-filter="all">All</button>
-                                            <button class="filter-chip" data-filter="error">Errors</button>
-                                            <button class="filter-chip" data-filter="content">Content</button>
-                                            <button class="filter-chip" data-filter="log">Logs</button>
-                                            <button class="filter-chip" data-filter="provision">Provisioning</button>
-                                            <button class="filter-chip" data-filter="network">Network</button>
+                                            <label class="form-label fw-semibold">Run a saved Workflow</label>
+                                            <div class="input-group">
+                                                <select id="quick-workflow-select" class="form-select">
+                                                    <option value="">â Select workflow â</option>
+                                                </select>
+                                                <button class="btn btn-success" id="run-workflow-btn" disabled title="Run selected workflow">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <input type="text" id="action-search" class="form-control mb-3" placeholder="Search actions...">
-                                        
-                                        <div id="actions-list" style="max-height: 300px; overflow-y: auto;"></div>
-                                        
-                                        <!-- Selected Actions Detail -->
-                                        <div id="selected-actions-detail" style="margin-top: 1rem;"></div>
-                                        
+
+                                        <hr>
+
+                                        <h6>Or select individual actions</h6>
+                                        <div class="mb-2">
+                                            <button class="filter-chip active" data-filter="all" aria-pressed="true">All</button>
+                                            <button class="filter-chip" data-filter="error" aria-pressed="false">Errors</button>
+                                            <button class="filter-chip" data-filter="content" aria-pressed="false">Content</button>
+                                            <button class="filter-chip" data-filter="log" aria-pressed="false">Logs</button>
+                                            <button class="filter-chip" data-filter="provision" aria-pressed="false">Provisioning</button>
+                                            <button class="filter-chip" data-filter="network" aria-pressed="false">Network</button>
+                                        </div>
+                                        <input type="text" id="action-search" class="form-control mb-3" placeholder="Search actionsâ¦" aria-label="Search actions">
+
+                                        <div id="actions-list" style="max-height: 260px; overflow-y: auto;" role="listbox" aria-label="Available actions"></div>
+
+                                        <div id="selected-actions-detail" class="mt-2"></div>
+
                                         <button id="run-actions-btn" class="btn btn-primary w-100 mt-3" disabled>
                                             <i class="fas fa-play"></i> Run Selected Actions
                                         </button>
                                     </div>
                                 </div>
-                                
-                                <div class="tab-pane fade" id="results-panel">
-                                    <div id="code-detection" style="display: none; margin-top: 1rem; color: black;">
+
+                                <div class="tab-pane fade" id="results-panel" role="tabpanel">
+                                    <div id="code-detection" style="display: none; margin-top: 1rem;">
                                         <div class="code-detected">
-                                            <h5 style="color: black;"><i class="fas fa-key me-2"></i>Provisioning Codes</h5>
+                                            <h5><i class="fas fa-key me-2"></i>Provisioning Codes</h5>
                                             <div id="detected-codes"></div>
                                         </div>
                                     </div>
-                                    
                                     <div id="analysis-results" class="result-box mt-3">
-                                        <p class="text-center">Results will appear here after execution.</p>
+                                        <p class="text-center text-muted">Results will appear here after execution.</p>
                                     </div>
                                 </div>
                             </div>
@@ -659,16 +715,16 @@
                 </div>
             </div>
         </div>
-        
-        <!-- WORKFLOW BUILDER PAGE -->
+
+        <!-- ==================== WORKFLOW BUILDER ==================== -->
         <div id="workflows-page" class="page-content">
             <div class="row">
                 <div class="col-12 mb-4">
-                    <h1 class="display-5 fw-bold"><i class="fas fa-project-diagram"></i> Workflow Builder</h1>
-                    <p class="lead">Build multi-step automation workflows with chained actions</p>
+                    <h1 class="display-6 fw-bold"><i class="fas fa-project-diagram"></i> Workflow Builder</h1>
+                    <p class="lead text-muted">Build multi-step automation workflows with chained actions</p>
                 </div>
             </div>
-            
+
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="card">
@@ -677,6 +733,15 @@
                             <button class="btn btn-success w-100 my-3" onclick="createNewWorkflow()">
                                 <i class="fas fa-plus"></i> New Workflow
                             </button>
+                            <div class="d-flex gap-2 mb-3">
+                                <button class="btn btn-outline-secondary btn-sm flex-fill" onclick="exportData()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                                <label class="btn btn-outline-secondary btn-sm flex-fill mb-0">
+                                    <i class="fas fa-upload"></i> Import
+                                    <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+                                </label>
+                            </div>
                             <div id="workflows-list-sidebar"></div>
                         </div>
                     </div>
@@ -688,15 +753,14 @@
                                 <h4><i class="fas fa-edit"></i> Edit Workflow</h4>
                                 <div class="workflow-container">
                                     <div class="mb-3">
-                                        <label class="form-label">Workflow Name</label>
+                                        <label class="form-label">Workflow Name <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="wf-name" placeholder="Error Monitoring System">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Description</label>
                                         <textarea class="form-control" id="wf-description" rows="2"></textarea>
                                     </div>
-                                    
-                                    <!-- Master Triage Toggle -->
+
                                     <div class="mb-3">
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" id="wf-enable-triage">
@@ -705,24 +769,27 @@
                                             </label>
                                         </div>
                                     </div>
-                                    
-                                    <div id="triage-config" style="display: none; margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+
+                                    <div id="triage-config" style="display: none; margin-bottom: 1rem; padding: 1rem; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color);">
                                         <label class="form-label">Master Triage Prompt</label>
-                                        <textarea class="form-control" id="wf-triage-prompt" rows="8"></textarea>
-                                        <small class="text-muted">Configure how AI should analyze and categorize screenshots for this workflow</small>
+                                        <textarea class="form-control" id="wf-triage-prompt" rows="6"></textarea>
+                                        <small class="text-muted">Configure how AI should analyse and categorise screenshots for this workflow</small>
                                     </div>
-                                    
+
                                     <h5 class="mt-4">Actions Pipeline</h5>
                                     <div class="action-pipeline" id="action-pipeline">
                                         <div class="text-muted">No actions added yet</div>
                                     </div>
-                                    
-                                    <div class="mt-3">
+
+                                    <div class="mt-3 d-flex flex-wrap gap-2">
                                         <button class="btn btn-primary" onclick="showActionSelector()">
                                             <i class="fas fa-plus"></i> Add Action
                                         </button>
                                         <button class="btn btn-success" onclick="saveCurrentWorkflow()">
                                             <i class="fas fa-save"></i> Save
+                                        </button>
+                                        <button class="btn btn-outline-primary" id="run-this-workflow-btn" onclick="runCurrentWorkflow()" disabled>
+                                            <i class="fas fa-play"></i> Run Now
                                         </button>
                                         <button class="btn btn-danger" onclick="deleteCurrentWorkflow()">
                                             <i class="fas fa-trash"></i> Delete
@@ -732,8 +799,8 @@
                             </div>
                             <div id="workflow-placeholder">
                                 <div class="text-center py-5">
-                                    <i class="fas fa-folder-open fa-3x mb-3" style="color: var(--text-muted);"></i>
-                                    <p>Select a workflow or create a new one</p>
+                                    <i class="fas fa-folder-open fa-3x mb-3" style="color: var(--text-secondary);"></i>
+                                    <p class="text-muted">Select a workflow or create a new one</p>
                                 </div>
                             </div>
                         </div>
@@ -741,175 +808,147 @@
                 </div>
             </div>
         </div>
-        
-        <!-- TOOLS PAGE -->
+
+        <!-- ==================== TOOLS ==================== -->
         <div id="tools-page" class="page-content">
             <div class="row">
                 <div class="col-12 mb-4">
-                    <h1 class="display-5 fw-bold"><i class="fas fa-toolbox"></i> Tools</h1>
-                    <p class="lead">Manage actions library and pattern recognition</p>
+                    <h1 class="display-6 fw-bold"><i class="fas fa-toolbox"></i> Tools</h1>
+                    <p class="lead text-muted">Manage actions library and pattern recognition</p>
                 </div>
             </div>
-            
-            <!-- Actions Library -->
+
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <h4><i class="fas fa-toolbox"></i> Actions Library</h4>
-                            <button class="btn btn-success mb-3" onclick="createNewAction()">
-                                <i class="fas fa-plus"></i> Create Custom Action
-                            </button>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0"><i class="fas fa-list"></i> Actions Library</h4>
+                                <button class="btn btn-success" onclick="createNewAction()">
+                                    <i class="fas fa-plus"></i> Create Custom Action
+                                </button>
+                            </div>
                             <div id="actions-library"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Pattern Recognition -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4><i class="fas fa-code"></i> Provisioning Code Patterns</h4>
-                            <table class="table table-dark">
-                                <thead>
-                                    <tr>
-                                        <th>System</th>
-                                        <th>Example</th>
-                                        <th>Regex</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>SignageOS</td>
-                                        <td><code style="color: var(--success-color);">#d362727gv</code></td>
-                                        <td><code>#\w{8,}</code></td>
-                                    </tr>
-                                    <tr>
-                                        <td>MQ</td>
-                                        <td><code style="color: var(--success-color);">name-1234</code></td>
-                                        <td><code>[a-zA-Z]+-\d{4}</code></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Dise</td>
-                                        <td><code style="color: var(--success-color);">123-123</code></td>
-                                        <td><code>\d{3}-\d{3}</code></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-        
     </div>
 
+    <!-- ==================== MODALS ==================== -->
+
     <!-- Settings Modal -->
-    <div class="modal fade" id="settingsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content" style="background: var(--bg-card); color: white;">
-                <div class="modal-header" style="border-bottom: 1px solid #475569;">
-                    <h5 class="modal-title"><i class="fas fa-cog me-2"></i>Settings</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="settingsModalLabel"><i class="fas fa-cog me-2"></i>Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <h5><i class="fas fa-key"></i> API Configuration</h5>
+                    <div id="api-status"></div>
+
                     <div class="mb-3">
                         <label class="form-label">Groq API Key</label>
-                        <input type="password" id="api-key-input" class="form-control" placeholder="gsk_...">
-                        <small>Get your free API key from <a href="https://console.groq.com" target="_blank" style="color: var(--primary-color);">console.groq.com</a></small>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="api-key-input" placeholder="gsk_â¦">
+                            <button class="btn btn-outline-secondary" type="button" id="save-api-key-btn">Save</button>
+                        </div>
+                        <small class="text-muted">Stored only in your browser (localStorage)</small>
                     </div>
-                    <button id="save-api-key-btn" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save API Key
-                    </button>
-                    <button id="test-api-btn" class="btn btn-success ms-2">
-                        <i class="fas fa-check-circle"></i> Test Connection
-                    </button>
-                    <div id="api-status" class="mt-3"></div>
-                    
-                    <hr class="my-4" style="border-color: #475569;">
-                    
-                    <h5><i class="fas fa-robot"></i> Model Selection</h5>
-                    <button id="fetch-models-btn" class="btn btn-primary mb-3">
-                        <i class="fas fa-sync"></i> Fetch Available Models
-                    </button>
-                    <div id="models-list"></div>
-                    
-                    <hr class="my-4" style="border-color: #475569;">
-                    
-                    <h5><i class="fas fa-sliders-h"></i> Model Parameters</h5>
-                    <div class="mb-4">
+
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-outline-primary" id="test-api-btn">
+                            <i class="fas fa-check-circle"></i> Test Connection
+                        </button>
+                        <button class="btn btn-outline-primary" id="fetch-models-btn">
+                            <i class="fas fa-sync"></i> Fetch Models
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Available Models</label>
+                        <div id="models-list" style="max-height: 180px; overflow-y: auto;"></div>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Temperature: <span id="temp-value">0.7</span></label>
                         <input type="range" class="form-range" id="temperature-slider" min="0" max="2" step="0.1" value="0.7">
-                        <small class="text-muted">0 = focused, 2 = creative</small>
                     </div>
-                    <div class="mb-4">
+
+                    <div class="mb-3">
                         <label class="form-label">Max Tokens</label>
-                        <input type="number" id="max-tokens-input" class="form-control" value="1024" min="1" max="8192">
+                        <input type="number" class="form-control" id="max-tokens-input" value="1024" min="64" max="8192">
                     </div>
-                    <div class="mb-4">
+
+                    <div class="mb-3">
                         <label class="form-label">System Prompt</label>
-                        <textarea id="system-prompt-input" class="form-control" rows="4">You are an intelligent OCR analysis assistant for digital signage operations.</textarea>
+                        <textarea class="form-control" id="system-prompt-input" rows="4"></textarea>
                     </div>
-                    <button id="save-settings-btn" class="btn btn-primary w-100">
-                        <i class="fas fa-save"></i> Save Settings
-                    </button>
-                    
-                    <hr class="my-4" style="border-color: #475569;">
-                    
-                    <h5><i class="fas fa-info-circle"></i> Current Configuration</h5>
-                    <div id="config-preview" class="result-box">
-                        <p class="text-muted">Save settings to see preview</p>
+
+                    <div class="mb-3">
+                        <label class="form-label">Current Configuration</label>
+                        <div id="config-preview" class="result-box" style="max-height: 150px;"></div>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="save-settings-btn">Save Settings</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Action Selector Modal -->
-    <div id="action-selector-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; overflow-y: auto; padding: 2rem;">
-        <div class="container">
-            <div class="card" style="max-width: 800px; margin: 0 auto;">
-                <div class="card-body">
-                    <h4>Select Action to Add</h4>
-                    <div id="available-actions-for-workflow"></div>
-                    <button class="btn btn-secondary mt-3" onclick="hideActionSelector()">Cancel</button>
+    <div class="modal fade" id="action-selector-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Action to Add</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="available-actions-for-workflow" style="max-height: 400px; overflow-y: auto;"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Action Creator Modal -->
-    <div id="action-creator-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; overflow-y: auto; padding: 2rem;">
-        <div class="container">
-            <div class="card" style="max-width: 800px; margin: 0 auto;">
-                <div class="card-body">
-                    <h4>Create Custom Action</h4>
+    <div class="modal fade" id="action-creator-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Custom Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Action Name</label>
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="action-name" placeholder="Restart Player">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea class="form-control" id="action-description" rows="2"></textarea>
+                        <input type="text" class="form-control" id="action-description" placeholder="Remotely restart signage player">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tags (comma-separated)</label>
-                        <input type="text" class="form-control" id="action-tags" placeholder="error, hardware, sony">
+                        <input type="text" class="form-control" id="action-tags" placeholder="error, hardware, samsung">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Trigger Type</label>
-                        <select class="form-select" id="action-trigger">
-                            <option value="contains">Text Contains</option>
-                            <option value="regex">Regex Match</option>
-                            <option value="always">Always Run</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Trigger Value</label>
-                        <input type="text" class="form-control" id="action-trigger-value">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Trigger</label>
+                            <select class="form-select" id="action-trigger">
+                                <option value="always">Always</option>
+                                <option value="contains">Text Contains</option>
+                                <option value="regex">Regex</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Trigger Value</label>
+                            <input type="text" class="form-control" id="action-trigger-value" placeholder="crash|freeze">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Action Type</label>
@@ -920,1202 +959,479 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Custom Prompt</label>
-                        <textarea class="form-control" id="action-prompt" rows="4"></textarea>
+                        <label class="form-label">Prompt</label>
+                        <textarea class="form-control" id="action-prompt" rows="4" placeholder="Analyse this crash and provide restart instructionsâ¦"></textarea>
                     </div>
-                    <button class="btn btn-success" onclick="saveNewAction()">
-                        <i class="fas fa-save"></i> Save Action
-                    </button>
-                    <button class="btn btn-secondary" onclick="closeActionCreator()">Cancel</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="saveNewAction()">Save Action</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
     <script>
     // ==========================================
-    // THEME TOGGLE
+    // STATE (single source of truth)
     // ==========================================
-    
-    function toggleTheme() {
-        const body = document.body;
-        const icon = document.getElementById('theme-icon');
-        
-        if (body.classList.contains('dark-mode')) {
-            body.classList.remove('dark-mode');
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-            localStorage.setItem('theme', 'light');
-        } else {
-            body.classList.add('dark-mode');
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-            localStorage.setItem('theme', 'dark');
-        }
+    const AppState = {
+        workflows: [],
+        actions: [],
+        currentWorkflow: null,
+        selectedActions: [],
+        currentImageFilename: '',
+        cachedModels: []
+    };
+
+    // ==========================================
+    // TOAST SYSTEM
+    // ==========================================
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        const icons = { success: 'check-circle', error: 'exclamation-circle', warning: 'exclamation-triangle', info: 'info-circle' };
+        toast.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}" style="color: var(--${type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary'}-color);"></i><span>${escapeHtml(message)}</span>`;
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3200);
     }
-    
+
+    // ==========================================
+    // UTILITIES
+    // ==========================================
+    function escapeHtml(text) {
+        if (text == null) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, c => map[c]);
+    }
+
+    function renderMarkdown(text) {
+        if (!text) return '';
+        let html = escapeHtml(text);
+        html = html
+            .replace(/^### (.+)$/gm, '<h5>$1</h5>')
+            .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/^- (.+)$/gm, '<li>$1</li>')
+            .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
+            .replace(/\n/g, '<br>');
+        return html;
+    }
+
+    function debounce(fn, wait = 250) {
+        let t;
+        return function (...args) {
+            clearTimeout(t);
+            t = setTimeout(() => fn.apply(this, args), wait);
+        };
+    }
+
+    function isValidRegex(pattern) {
+        try { new RegExp(pattern); return true; } catch { return false; }
+    }
+
+    // ==========================================
+    // THEME
+    // ==========================================
     function loadTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        const icon = document.getElementById('theme-icon');
-        
-        // Check saved preference or system preference
-        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        const theme = localStorage.getItem('snapops_theme') || 'light';
+        if (theme === 'dark') {
             document.body.classList.add('dark-mode');
-            if (icon) {
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-            }
+            document.getElementById('theme-icon').className = 'fas fa-sun';
         }
     }
-    
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        document.getElementById('theme-icon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        localStorage.setItem('snapops_theme', isDark ? 'dark' : 'light');
+    }
+
     // ==========================================
-    // SETTINGS MODULE (Your working version)
+    // SETTINGS MODULE
     // ==========================================
     const SettingsModule = (() => {
-        const STORAGE_KEYS = {
-            API_KEY: 'visionflow_api_key',
-            MODEL: 'visionflow_model',
-            TEMPERATURE: 'visionflow_temperature',
-            MAX_TOKENS: 'visionflow_max_tokens',
-            SYSTEM_PROMPT: 'visionflow_system_prompt'
+        const DEFAULTS = {
+            apiKey: '',
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.7,
+            maxTokens: 1024,
+            systemPrompt: 'You are an expert digital signage operations assistant. Analyse the provided text carefully and give clear, actionable advice for field technicians and remote support teams.'
         };
-        
-        function saveApiKey(apiKey) {
-            localStorage.setItem(STORAGE_KEYS.API_KEY, apiKey);
+
+        function get(key) {
+            const raw = localStorage.getItem('snapops_' + key);
+            if (raw === null) return DEFAULTS[key];
+            try { return JSON.parse(raw); } catch { return raw; }
         }
-        
-        function getApiKey() {
-            return localStorage.getItem(STORAGE_KEYS.API_KEY);
+        function set(key, value) {
+            localStorage.setItem('snapops_' + key, typeof value === 'string' ? value : JSON.stringify(value));
         }
-        
-        function saveModel(modelId) {
-            localStorage.setItem(STORAGE_KEYS.MODEL, modelId);
-        }
-        
-        function getModel() {
-            return localStorage.getItem(STORAGE_KEYS.MODEL) || 'llama-3.3-70b-versatile';
-        }
-        
-        function saveTemperature(temp) {
-            localStorage.setItem(STORAGE_KEYS.TEMPERATURE, temp);
-        }
-        
-        function getTemperature() {
-            return parseFloat(localStorage.getItem(STORAGE_KEYS.TEMPERATURE)) || 0.7;
-        }
-        
-        function saveMaxTokens(tokens) {
-            localStorage.setItem(STORAGE_KEYS.MAX_TOKENS, tokens);
-        }
-        
-        function getMaxTokens() {
-            return parseInt(localStorage.getItem(STORAGE_KEYS.MAX_TOKENS)) || 1024;
-        }
-        
-        function saveSystemPrompt(prompt) {
-            localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, prompt);
-        }
-        
-        function getSystemPrompt() {
-            return localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || 
-                   'You are an intelligent OCR analysis assistant. Analyze the provided text and respond concisely and accurately.';
-        }
-        
-        function getAllSettings() {
-            return {
-                apiKey: getApiKey(),
-                model: getModel(),
-                temperature: getTemperature(),
-                maxTokens: getMaxTokens(),
-                systemPrompt: getSystemPrompt()
-            };
-        }
-        
-        function isConfigured() {
-            return !!getApiKey();
-        }
-        
+
         return {
-            saveApiKey, getApiKey, saveModel, getModel,
-            saveTemperature, getTemperature, saveMaxTokens, getMaxTokens,
-            saveSystemPrompt, getSystemPrompt, getAllSettings, isConfigured
+            getApiKey: () => get('apiKey') || '',
+            saveApiKey: (k) => set('apiKey', k),
+            getModel: () => get('model'),
+            saveModel: (m) => set('model', m),
+            getTemperature: () => parseFloat(get('temperature')),
+            saveTemperature: (t) => set('temperature', t),
+            getMaxTokens: () => parseInt(get('maxTokens'), 10),
+            saveMaxTokens: (n) => set('maxTokens', n),
+            getSystemPrompt: () => get('systemPrompt'),
+            saveSystemPrompt: (p) => set('systemPrompt', p),
+            isConfigured: () => !!get('apiKey'),
+            getAllSettings: () => ({
+                apiKey: get('apiKey') ? 'â¢â¢â¢â¢â¢â¢â¢â¢' : '(not set)',
+                model: get('model'),
+                temperature: get('temperature'),
+                maxTokens: get('maxTokens'),
+                systemPrompt: get('systemPrompt')
+            })
         };
     })();
-    
+
     // ==========================================
-    // OCR MODULE (Your working version)
+    // OCR MODULE (single source of truth for text)
     // ==========================================
     const OCRModule = (() => {
-        let currentImage = null;
         let extractedText = '';
-        
+        let worker = null;
+
+        async function getWorker(progressCallback) {
+            if (worker) return worker;
+            worker = await Tesseract.createWorker('eng', 1, {
+                logger: m => {
+                    if (progressCallback && m.progress !== undefined) {
+                        progressCallback(Math.round(m.progress * 100));
+                    }
+                }
+            });
+            return worker;
+        }
+
         async function extractText(imageFile, progressCallback) {
             try {
-                currentImage = imageFile;
-                
-                const worker = await Tesseract.createWorker('eng', 1, {
-                    logger: m => {
-                        if (progressCallback && m.progress !== undefined) {
-                            progressCallback(Math.round(m.progress * 100));
-                        }
-                    }
-                });
-                
-                const { data: { text } } = await worker.recognize(imageFile);
-                await worker.terminate();
-                
-                extractedText = text.trim();
+                const w = await getWorker(progressCallback);
+                const { data: { text } } = await w.recognize(imageFile);
+                extractedText = (text || '').trim();
                 return extractedText;
-                
-            } catch (error) {
-                console.error('OCR extraction error:', error);
-                throw new Error('Failed to extract text from image: ' + error.message);
+            } catch (err) {
+                console.error('OCR error:', err);
+                throw new Error('Failed to extract text from image: ' + err.message);
             }
         }
-        
-        function getText() {
-            return extractedText;
+
+        function setText(text) {
+            extractedText = (text || '').trim();
         }
-        
-        function clearText() {
-            extractedText = '';
-            currentImage = null;
+        function getText() { return extractedText; }
+        function hasText() { return extractedText.length > 0; }
+        function clearText() { extractedText = ''; }
+
+        async function terminate() {
+            if (worker) {
+                await worker.terminate();
+                worker = null;
+            }
         }
-        
-        function hasText() {
-            return extractedText.length > 0;
-        }
-        
-        return { extractText, getText, clearText, hasText };
+
+        window.addEventListener('beforeunload', () => { terminate(); });
+
+        return { extractText, setText, getText, hasText, clearText, terminate };
     })();
-    
+
     // ==========================================
-    // LLM MODULE (Your working version)
+    // LLM MODULE
     // ==========================================
     const LLMModule = (() => {
-        const GROQ_API_BASE = 'https://api.groq.com/openai/v1';
-        
-        async function fetchModels() {
+        const BASE = 'https://api.groq.com/openai/v1';
+
+        async function chat(messages, options = {}) {
             const apiKey = SettingsModule.getApiKey();
-            if (!apiKey) {
-                throw new Error('API key not configured');
+            if (!apiKey) throw new Error('API key not configured');
+
+            const res = await fetch(`${BASE}/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: options.model || SettingsModule.getModel(),
+                    messages,
+                    temperature: options.temperature ?? SettingsModule.getTemperature(),
+                    max_tokens: options.maxTokens ?? SettingsModule.getMaxTokens()
+                })
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error?.message || `HTTP ${res.status}`);
             }
-            
-            try {
-                const response = await fetch(`${GROQ_API_BASE}/models`, {
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch models');
-                }
-                
-                const data = await response.json();
-                return data.data || [];
-            } catch (error) {
-                console.error('Error fetching models:', error);
-                throw error;
-            }
+            const data = await res.json();
+            return data.choices?.[0]?.message?.content || '';
         }
-        
+
+        async function analyzeText(text, prompt) {
+            const system = SettingsModule.getSystemPrompt();
+            return chat([
+                { role: 'system', content: system },
+                { role: 'user', content: `${prompt}\n\n---\n\n${text}` }
+            ]);
+        }
+
         async function testConnection() {
             try {
-                await fetchModels();
-                return { success: true, message: 'API connection successful' };
-            } catch (error) {
-                return { success: false, message: error.message };
+                const reply = await chat([{ role: 'user', content: 'Reply with exactly: OK' }], { maxTokens: 10 });
+                return { success: true, message: 'Connection successful! Response: ' + reply.trim() };
+            } catch (e) {
+                return { success: false, message: e.message };
             }
         }
-        
-        async function analyzeText(text, customPrompt = null) {
-            const apiKey = SettingsModule.getApiKey();
-            if (!apiKey) {
-                throw new Error('API key not configured. Please set up your API key in Settings.');
-            }
-            
-            const settings = SettingsModule.getAllSettings();
-            const systemPrompt = customPrompt || settings.systemPrompt;
-            
-            try {
-                const response = await fetch(`${GROQ_API_BASE}/chat/completions`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: settings.model,
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: text }
-                        ],
-                        temperature: settings.temperature,
-                        max_tokens: settings.maxTokens
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || 'API request failed');
-                }
-                
-                const data = await response.json();
-                return data.choices[0].message.content;
-                
-            } catch (error) {
-                console.error('LLM analysis error:', error);
-                throw error;
-            }
-        }
-        
-        return { fetchModels, testConnection, analyzeText };
-    })();
-    
-    // ==========================================
-    // ENHANCED ACTIONS & WORKFLOWS MODULE
-    // ==========================================
-    
-    // Fixed provisioning patterns
-    const patterns = [
-        { system: 'SignageOS', regex: /#[a-zA-Z0-9]{8,}/, example: '#d362727gv' },
-        { system: 'MQ', regex: /[a-zA-Z]+-\d{4}/, example: 'name-1234' },
-        { system: 'Dise', regex: /\d{3}-\d{3}/, example: '123-123' }
-    ];
-    
-    // Default master triage prompt
-    const defaultTriagePrompt = `You are a master triage AI for digital signage operations. Analyze extracted text and:
-1. Device Detection: Identify device type from visible text or error messages
-2. Content Categorization: ERROR_SCREEN, BLACK_SCREEN, PROVISIONING_SCREEN, LOG_OUTPUT, CONTENT_DISPLAY
-3. Severity: CRITICAL, HIGH, MEDIUM, LOW, INFO
-4. Recommended Actions: List which actions should trigger
 
-Format as JSON: {"device_type": "samsung_tizen", "category": "ERROR_SCREEN", "severity": "HIGH", "summary": "brief", "recommended_actions": ["act_error_handler"]}`;
-    
-    // Data structures
-    let workflows = [];
-    let actions = [];
-    let currentWorkflow = null;
-    let selectedActions = [];
-    let extractedText = '';
-    let currentImage = null;
-    let currentImageFilename = '';
-    let settingsModalInstance = null;
-    
-    // Initialize predefined actions
+        async function fetchModels() {
+            const apiKey = SettingsModule.getApiKey();
+            if (!apiKey) throw new Error('API key not configured');
+            const res = await fetch(`${BASE}/models`, {
+                headers: { 'Authorization': `Bearer ${apiKey}` }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const models = (data.data || []).map(m => ({ id: m.id }));
+            AppState.cachedModels = models;
+            return models;
+        }
+
+        return { analyzeText, testConnection, fetchModels, chat };
+    })();
+
+    // ==========================================
+    // PREDEFINED ACTIONS & PATTERNS
+    // ==========================================
+    const defaultTriagePrompt = `You are a Master Triage agent for digital signage operations.
+Analyse the provided screenshot text and respond ONLY with valid JSON in this exact shape:
+{
+  "device_type": "Samsung Tizen | Sony | LG webOS | Philips | ChromeOS | SignageOS | Unknown",
+  "category": "ERROR_SCREEN | BLACK_SCREEN | PROVISIONING_SCREEN | LOG_OUTPUT | CONTENT_DISPLAY | OTHER",
+  "severity": "CRITICAL | HIGH | MEDIUM | LOW | INFO",
+  "summary": "One-sentence summary of the issue",
+  "recommended_actions": ["act_error_handler", "act_network_diag"]
+}
+Be concise and accurate.`;
+
     function initializePredefinedActions() {
-        actions = [
+        const predefined = [
             {
                 id: 'act_error_handler',
                 name: 'Error Handler',
-                description: 'Analyzes errors and provides troubleshooting steps',
-                tags: ['error', 'hardware', 'software'],
+                description: 'Analyse error messages and suggest remediation steps',
+                tags: ['error'],
                 trigger: 'contains',
-                triggerValue: 'error|exception|failed|crash',
+                triggerValue: 'error|exception|failed|crash|fatal',
                 type: 'llm',
-                prompt: 'Analyze this error. Identify: 1) Error type 2) Severity 3) Immediate fixes 4) Prevention'
+                prompt: 'Identify the root cause of this error and provide clear, step-by-step remediation instructions for a field technician.'
             },
             {
                 id: 'act_black_screen',
                 name: 'Black Screen Diagnostics',
-                description: 'Diagnoses no signal and black screen issues',
-                tags: ['error', 'hardware', 'content'],
+                description: 'Diagnose no-signal / black screen situations',
+                tags: ['error', 'hardware'],
                 trigger: 'contains',
-                triggerValue: 'no signal|black screen|blank',
+                triggerValue: 'no signal|black|blank|no input',
                 type: 'llm',
-                prompt: 'Diagnose black screen: Check signal, power, content failure. Provide troubleshooting steps.'
+                prompt: 'This appears to be a black/no-signal screen. List the most likely causes and ordered troubleshooting steps.'
             },
             {
                 id: 'act_content_verify',
                 name: 'Content Verification',
-                description: 'Verifies correct content is playing',
+                description: 'Verify that the expected content is playing',
                 tags: ['content'],
                 trigger: 'always',
                 triggerValue: '',
                 type: 'llm',
-                prompt: 'Extract content details, check quality issues, verify if content appears current or stale.'
+                prompt: 'Describe what content is currently being displayed and whether it looks correct for a digital signage player.'
             },
             {
                 id: 'act_log_analyzer',
                 name: 'Log Analyzer',
-                description: 'Parses and summarizes system logs',
-                tags: ['log', 'software'],
+                description: 'Parse and summarise log / console output',
+                tags: ['log'],
                 trigger: 'contains',
-                triggerValue: 'log|console|terminal|journalctl',
+                triggerValue: 'log|console|debug|info|warn',
                 type: 'llm',
-                prompt: 'Analyze log: Extract errors/warnings, identify critical issues, suggest diagnostic commands.'
+                prompt: 'Analyse these logs. Highlight any errors, warnings, or anomalies and summarise the current state of the player.'
             },
             {
                 id: 'act_provision_extract',
                 name: 'Provisioning Code Extractor',
-                description: 'Extracts pairing codes and activation tokens',
+                description: 'Extract and validate pairing / provisioning codes',
                 tags: ['provision'],
                 trigger: 'regex',
-                triggerValue: '(#[a-zA-Z0-9]{8,}|[a-zA-Z]+-\\d{4}|\\d{3}-\\d{3})',
+                triggerValue: '#[a-zA-Z0-9]{8,}|[a-zA-Z]+-\\d{4}|\\d{3}-\\d{3}',
                 type: 'extract',
-                prompt: 'Extract all provisioning codes, pairing tokens, device IDs, and activation URLs.'
+                prompt: 'Extract every provisioning, pairing or activation code you can find. List them clearly with the system they belong to if possible.'
             },
             {
-                id: 'act_network_check',
+                id: 'act_network_diag',
                 name: 'Network Diagnostics',
-                description: 'Analyzes network connectivity issues',
-                tags: ['network', 'error'],
+                description: 'Analyse connectivity and network-related messages',
+                tags: ['network'],
                 trigger: 'contains',
-                triggerValue: 'network|connection|timeout|dns',
+                triggerValue: 'network|wifi|ethernet|dns|timeout|unreachable|offline',
                 type: 'llm',
-                prompt: 'Analyze network issue: Identify problem type, suggest fixes.'
+                prompt: 'Analyse the network-related information and provide concrete diagnostic and fix steps.'
             }
         ];
-        
-        loadCustomActions();
+
+        // Merge with any custom actions from storage
+        const custom = JSON.parse(localStorage.getItem('snapops_custom_actions') || '[]');
+        AppState.actions = [...predefined, ...custom];
     }
-    
-    // Storage functions
-    function loadCustomActions() {
-        const saved = localStorage.getItem('snapocr_custom_actions');
-        if (saved) {
-            try {
-                const custom = JSON.parse(saved);
-                actions = actions.concat(custom);
-            } catch (e) {
-                console.error('Failed to load custom actions:', e);
-            }
-        }
-    }
-    
+
     function saveCustomActions() {
-        const custom = actions.filter(a => a.id.startsWith('custom_'));
-        localStorage.setItem('snapocr_custom_actions', JSON.stringify(custom));
+        const custom = AppState.actions.filter(a => a.id.startsWith('custom_'));
+        localStorage.setItem('snapops_custom_actions', JSON.stringify(custom));
     }
-    
+
     function loadWorkflows() {
-        const saved = localStorage.getItem('snapocr_workflows');
-        if (saved) {
-            try {
-                workflows = JSON.parse(saved);
-            } catch (e) {
-                console.error('Failed to load workflows:', e);
-            }
-        }
+        AppState.workflows = JSON.parse(localStorage.getItem('snapops_workflows') || '[]');
     }
-    
     function saveWorkflows() {
-        localStorage.setItem('snapocr_workflows', JSON.stringify(workflows));
+        localStorage.setItem('snapops_workflows', JSON.stringify(AppState.workflows));
     }
-    
-    // Device detection - only from actual content, not filename
+
+    // ==========================================
+    // DETECTION HELPERS
+    // ==========================================
     function detectDeviceFromContent(text) {
-        const lower = text.toLowerCase();
-        if (lower.includes('samsung') || lower.includes('tizen')) return 'Samsung Tizen';
-        if (lower.includes('sony') || lower.includes('bravia')) return 'Sony Bravia';
-        if (lower.includes('lg') || lower.includes('webos')) return 'LG webOS';
-        if (lower.includes('philips')) return 'Philips Android';
-        if (lower.includes('chrome os') || lower.includes('chromeos')) return 'ChromeOS';
-        if (lower.includes('signageos')) return 'SignageOS';
+        const lower = (text || '').toLowerCase();
+        if (lower.includes('tizen') || lower.includes('samsung')) return 'Samsung Tizen';
+        if (lower.includes('webos') || lower.includes('lg ')) return 'LG webOS';
+        if (lower.includes('sony') || lower.includes('android tv')) return 'Sony';
+        if (lower.includes('philips') || lower.includes('ppds')) return 'Philips';
+        if (lower.includes('chromeos') || lower.includes('chrome os')) return 'ChromeOS';
+        if (lower.includes('signageos') || lower.includes('signage os')) return 'SignageOS';
         return null;
     }
-    
-    // Pattern detection with fixed regex
+
     function detectProvisioningCodes(text) {
-        const detected = [];
-        patterns.forEach(pattern => {
-            const matches = text.match(new RegExp(pattern.regex, 'g'));
-            if (matches) {
-                matches.forEach(match => {
-                    detected.push({ system: pattern.system, code: match });
-                });
-            }
+        const patterns = [
+            { system: 'SignageOS', regex: /#[a-zA-Z0-9]{8,}/g },
+            { system: 'MQ', regex: /[a-zA-Z]+-\d{4}/g },
+            { system: 'Dise', regex: /\d{3}-\d{3}/g }
+        ];
+        const found = [];
+        patterns.forEach(p => {
+            const matches = text.match(p.regex) || [];
+            matches.forEach(code => found.push({ system: p.system, code }));
         });
-        return detected;
+        return found;
     }
-    
-    // Master triage - only run if workflow has it enabled
-    async function runMasterTriage(text, workflow) {
-        if (!workflow || !workflow.enableTriage) {
-            return null;
-        }
-        
-        try {
-            const triagePrompt = workflow.triagePrompt || defaultTriagePrompt;
-            const response = await LLMModule.analyzeText(text, triagePrompt);
-            
-            try {
-                return JSON.parse(response);
-            } catch {
-                return {
-                    device_type: detectDeviceFromContent(text) || 'unknown',
-                    category: detectCategory(text),
-                    severity: detectSeverity(text),
-                    summary: response.substring(0, 200),
-                    recommended_actions: suggestActionsFromText(text)
-                };
-            }
-        } catch (error) {
-            console.error('Triage error:', error);
-            return null;
-        }
-    }
-    
-    function detectCategory(text) {
-        const lower = text.toLowerCase();
-        if (lower.includes('error') || lower.includes('exception')) return 'ERROR_SCREEN';
-        if (lower.includes('black') || lower.includes('no signal')) return 'BLACK_SCREEN';
-        if (patterns.some(p => p.regex.test(text))) return 'PROVISIONING_SCREEN';
-        if (lower.includes('log') || lower.includes('console')) return 'LOG_OUTPUT';
-        return 'CONTENT_DISPLAY';
-    }
-    
-    function detectSeverity(text) {
-        const lower = text.toLowerCase();
-        if (lower.includes('critical') || lower.includes('fatal')) return 'CRITICAL';
-        if (lower.includes('error') || lower.includes('failed')) return 'HIGH';
-        if (lower.includes('warning')) return 'MEDIUM';
-        return 'LOW';
-    }
-    
-    function suggestActionsFromText(text) {
-        const suggested = [];
-        const lower = text.toLowerCase();
-        
-        if (lower.includes('error') || lower.includes('exception')) suggested.push('act_error_handler');
-        if (lower.includes('network') || lower.includes('connection')) suggested.push('act_network_check');
-        if (lower.includes('black') || lower.includes('no signal')) suggested.push('act_black_screen');
-        if (lower.includes('log') || lower.includes('console')) suggested.push('act_log_analyzer');
-        if (patterns.some(p => p.regex.test(text))) suggested.push('act_provision_extract');
-        
-        return suggested.length > 0 ? suggested : ['act_content_verify'];
-    }
-    
-    // Action execution
-    async function executeAction(action, text) {
-        if (!shouldTriggerAction(action, text)) {
-            return 'Action condition not met - skipped';
-        }
-        
-        if (action.type === 'llm' || action.type === 'extract') {
-            return await LLMModule.analyzeText(text, action.prompt);
-        } else if (action.type === 'log') {
-            return `[LOG] ${new Date().toISOString()} - ${action.name}\n${text.substring(0, 200)}...`;
-        }
-        
-        return await LLMModule.analyzeText(text, action.prompt);
-    }
-    
+
+    // ==========================================
+    // ACTION EXECUTION
+    // ==========================================
     function shouldTriggerAction(action, text) {
         if (action.trigger === 'always') return true;
-        
-        const lower = text.toLowerCase();
-        const valueLower = action.triggerValue.toLowerCase();
-        
+        const lower = (text || '').toLowerCase();
+        const valueLower = (action.triggerValue || '').toLowerCase();
         switch (action.trigger) {
             case 'contains':
                 return valueLower.split('|').some(val => lower.includes(val.trim()));
             case 'regex':
-                try {
-                    return new RegExp(action.triggerValue).test(text);
-                } catch {
-                    return false;
-                }
+                if (!isValidRegex(action.triggerValue)) return false;
+                try { return new RegExp(action.triggerValue).test(text); } catch { return false; }
             default:
                 return true;
         }
     }
-    
+
+    async function executeAction(action, text) {
+        if (!shouldTriggerAction(action, text)) {
+            return 'Action condition not met â skipped';
+        }
+        try {
+            if (action.type === 'log') {
+                return `[LOG] ${new Date().toISOString()} â ${action.name}\n${text.substring(0, 300)}â¦`;
+            }
+            // llm or extract
+            return await LLMModule.analyzeText(text, action.prompt);
+        } catch (err) {
+            console.error(`Action ${action.name} failed:`, err);
+            throw new Error(`${action.name} failed: ${err.message}`);
+        }
+    }
+
+    async function runMasterTriage(text) {
+        const prompt = defaultTriagePrompt;
+        const raw = await LLMModule.analyzeText(text, prompt);
+        try {
+            // Try to extract JSON
+            const match = raw.match(/\{[\s\S]*\}/);
+            if (match) return JSON.parse(match[0]);
+        } catch (e) { /* fall through */ }
+        return {
+            device_type: detectDeviceFromContent(text) || 'Unknown',
+            category: 'OTHER',
+            severity: 'INFO',
+            summary: raw.substring(0, 200),
+            recommended_actions: []
+        };
+    }
+
     // ==========================================
-    // UI FUNCTIONS
+    // UI RENDERERS
     // ==========================================
-    
     function renderActionsList(filter = 'all', search = '') {
         const container = document.getElementById('actions-list');
-        let filtered = actions;
-        
+        let filtered = AppState.actions;
         if (filter && filter !== 'all') {
-            filtered = actions.filter(a => a.tags.includes(filter));
+            filtered = filtered.filter(a => a.tags.includes(filter));
         }
-        
         if (search) {
-            filtered = filtered.filter(a => 
-                a.name.toLowerCase().includes(search.toLowerCase()) ||
-                a.description.toLowerCase().includes(search.toLowerCase())
+            const s = search.toLowerCase();
+            filtered = filtered.filter(a =>
+                a.name.toLowerCase().includes(s) || a.description.toLowerCase().includes(s)
             );
         }
-        
         if (filtered.length === 0) {
-            container.innerHTML = '<p class="text-center">No actions found</p>';
+            container.innerHTML = '<p class="text-center text-muted">No actions found</p>';
             return;
         }
-        
-        // Render as compact list
         container.innerHTML = filtered.map(action => {
-            const isSelected = selectedActions.includes(action.id);
+            const isSelected = AppState.selectedActions.includes(action.id);
             return `
-                <div class="action-list-item ${isSelected ? 'selected' : ''}" onclick="toggleActionSelection('${action.id}')">
-                    <span>${action.name}</span>
-                    ${isSelected ? '<i class="fas fa-check-circle" style="color: var(--success-color);"></i>' : '<i class="far fa-circle" style="color: var(--text-muted);"></i>'}
-                </div>
-            `;
+                <div class="action-list-item ${isSelected ? 'selected' : ''}"
+                     role="option"
+                     tabindex="0"
+                     aria-selected="${isSelected}"
+                     data-action-id="${action.id}"
+                     onclick="toggleActionSelection('${action.id}')"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleActionSelection('${action.id}')}">
+                    <span>${escapeHtml(action.name)}</span>
+                    ${isSelected
+                        ? '<i class="fas fa-check-circle" style="color: var(--success-color);"></i>'
+                        : '<i class="far fa-circle" style="color: var(--text-secondary);"></i>'}
+                </div>`;
         }).join('');
-        
-        // Show detail for selected actions
         renderSelectedActionsDetail();
     }
-    
+
     function renderSelectedActionsDetail() {
         const container = document.getElementById('selected-actions-detail');
-        
-        if (selectedActions.length === 0) {
+        if (AppState.selectedActions.length === 0) {
             container.innerHTML = '';
             return;
         }
-        
         container.innerHTML = `
-            <h6 class="mt-3">Selected Actions (${selectedActions.length})</h6>
-            ${selectedActions.map(actionId => {
-                const action = actions.find(a => a.id === actionId);
-                if (!action) return '';
-                return `
-                    <div class="action-card selected">
-                        <strong>${action.name}</strong>
-                        <p style="margin: 0.25rem 0; font-size: 0.9rem;">${action.description}</p>
-                        <div>${action.tags.map(tag => `<span class="tag tag-${tag}">${tag}</span>`).join('')}</div>
-                    </div>
-                `;
-            }).join('')}
-        `;
-    }
-    
-    function toggleActionSelection(actionId) {
-        const idx = selectedActions.indexOf(actionId);
-        if (idx > -1) {
-            selectedActions.splice(idx, 1);
-        } else {
-            selectedActions.push(actionId);
-        }
-        renderActionsList(document.querySelector('.filter-chip.active')?.dataset.filter || 'all');
-        document.getElementById('run-actions-btn').disabled = selectedActions.length === 0;
-    }
-    
-    function renderActionsLibrary() {
-        const container = document.getElementById('actions-library');
-        container.innerHTML = actions.map(action => {
-            const isPredefined = action.id.startsWith('act_');
-            return `
-                <div class="action-card">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div style="flex: 1;">
-                            <strong>${action.name}</strong>
-                            ${isPredefined ? '<span class="badge bg-primary ms-2" style="font-size: 0.7rem;">PRESET</span>' : '<span class="badge bg-success ms-2" style="font-size: 0.7rem;">CUSTOM</span>'}
-                            <p style="margin: 0.25rem 0;">${action.description}</p>
-                            <div>${action.tags.map(tag => `<span class="tag tag-${tag}">${tag}</span>`).join('')}</div>
-                            <small style="color: var(--text-muted);">Trigger: ${action.trigger} "${action.triggerValue}"</small>
-                        </div>
-                        ${!isPredefined ? `
-                            <div>
-                                <button class="btn btn-sm btn-danger" onclick="deleteAction('${action.id}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function renderWorkflowsSidebar() {
-        const container = document.getElementById('workflows-list-sidebar');
-        
-        if (workflows.length === 0) {
-            container.innerHTML = '<p class="text-muted text-center">No workflows yet</p>';
-            return;
-        }
-        
-        container.innerHTML = workflows.map(wf => `
-            <div class="action-card" onclick="selectWorkflow('${wf.id}')">
-                <strong>${wf.name}</strong>
-                ${wf.enableTriage ? '<span class="badge bg-info ms-2" style="font-size: 0.7rem;"><i class="fas fa-robot"></i> Triage</span>' : ''}
-                <small style="color: var(--text-muted); display: block;">${wf.actions?.length || 0} actions</small>
-            </div>
-        `).join('');
-    }
-    
-    function createNewWorkflow() {
-        currentWorkflow = {
-            id: 'wf_' + Date.now(),
-            name: '',
-            description: '',
-            enableTriage: false,
-            triagePrompt: defaultTriagePrompt,
-            actions: []
-        };
-        
-        document.getElementById('workflow-placeholder').style.display = 'none';
-        document.getElementById('workflow-editor').style.display = 'block';
-        
-        document.getElementById('wf-name').value = '';
-        document.getElementById('wf-description').value = '';
-        document.getElementById('wf-enable-triage').checked = false;
-        document.getElementById('wf-triage-prompt').value = defaultTriagePrompt;
-        document.getElementById('triage-config').style.display = 'none';
-        renderActionPipeline();
-    }
-    
-    function selectWorkflow(wfId) {
-        currentWorkflow = workflows.find(w => w.id === wfId);
-        if (!currentWorkflow) return;
-        
-        document.getElementById('workflow-placeholder').style.display = 'none';
-        document.getElementById('workflow-editor').style.display = 'block';
-        
-        document.getElementById('wf-name').value = currentWorkflow.name;
-        document.getElementById('wf-description').value = currentWorkflow.description;
-        document.getElementById('wf-enable-triage').checked = currentWorkflow.enableTriage || false;
-        document.getElementById('wf-triage-prompt').value = currentWorkflow.triagePrompt || defaultTriagePrompt;
-        document.getElementById('triage-config').style.display = currentWorkflow.enableTriage ? 'block' : 'none';
-        renderActionPipeline();
-    }
-    
-    function renderActionPipeline() {
-        const container = document.getElementById('action-pipeline');
-        
-        if (!currentWorkflow || currentWorkflow.actions.length === 0) {
-            container.innerHTML = '<div class="text-muted">No actions added yet</div>';
-            return;
-        }
-        
-        const items = currentWorkflow.actions.map((actionId, idx) => {
-            const action = actions.find(a => a.id === actionId);
-            if (!action) return '';
-            
-            return `
-                <div class="pipeline-item">
-                    <strong style="display: block; margin-bottom: 0.25rem;">${action.name}</strong>
-                    <button class="btn btn-sm btn-danger" onclick="removeActionFromPipeline(${idx})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                ${idx < currentWorkflow.actions.length - 1 ? '<i class="fas fa-arrow-right pipeline-arrow"></i>' : ''}
-            `;
-        }).join('');
-        
-        container.innerHTML = items;
-    }
-    
-    function showActionSelector() {
-        const container = document.getElementById('available-actions-for-workflow');
-        container.innerHTML = actions.map(action => `
-            <div class="action-card" onclick="addActionToPipeline('${action.id}')">
-                <strong>${action.name}</strong>
-                <p style="margin: 0.25rem 0;">${action.description}</p>
-                <div>${action.tags.map(tag => `<span class="tag tag-${tag}">${tag}</span>`).join('')}</div>
-            </div>
-        `).join('');
-        
-        document.getElementById('action-selector-modal').style.display = 'block';
-    }
-    
-    function hideActionSelector() {
-        document.getElementById('action-selector-modal').style.display = 'none';
-    }
-    
-    function addActionToPipeline(actionId) {
-        if (!currentWorkflow.actions.includes(actionId)) {
-            currentWorkflow.actions.push(actionId);
-            renderActionPipeline();
-        }
-        hideActionSelector();
-    }
-    
-    function removeActionFromPipeline(idx) {
-        currentWorkflow.actions.splice(idx, 1);
-        renderActionPipeline();
-    }
-    
-    function saveCurrentWorkflow() {
-        if (!currentWorkflow) return;
-        
-        currentWorkflow.name = document.getElementById('wf-name').value;
-        currentWorkflow.description = document.getElementById('wf-description').value;
-        currentWorkflow.enableTriage = document.getElementById('wf-enable-triage').checked;
-        currentWorkflow.triagePrompt = document.getElementById('wf-triage-prompt').value;
-        
-        const existingIdx = workflows.findIndex(w => w.id === currentWorkflow.id);
-        if (existingIdx > -1) {
-            workflows[existingIdx] = currentWorkflow;
-        } else {
-            workflows.push(currentWorkflow);
-        }
-        
-        saveWorkflows();
-        renderWorkflowsSidebar();
-        alert('Workflow saved!');
-    }
-    
-    function deleteCurrentWorkflow() {
-        if (!currentWorkflow || !confirm('Delete this workflow?')) return;
-        
-        workflows = workflows.filter(w => w.id !== currentWorkflow.id);
-        saveWorkflows();
-        renderWorkflowsSidebar();
-        
-        document.getElementById('workflow-editor').style.display = 'none';
-        document.getElementById('workflow-placeholder').style.display = 'block';
-        currentWorkflow = null;
-    }
-    
-    function createNewAction() {
-        document.getElementById('action-creator-modal').style.display = 'block';
-        document.getElementById('action-name').value = '';
-        document.getElementById('action-description').value = '';
-        document.getElementById('action-tags').value = '';
-        document.getElementById('action-trigger-value').value = '';
-        document.getElementById('action-prompt').value = '';
-    }
-    
-    function closeActionCreator() {
-        document.getElementById('action-creator-modal').style.display = 'none';
-    }
-    
-    function saveNewAction() {
-        const newAction = {
-            id: 'custom_' + Date.now(),
-            name: document.getElementById('action-name').value.trim(),
-            description: document.getElementById('action-description').value.trim(),
-            tags: document.getElementById('action-tags').value.split(',').map(t => t.trim()).filter(t => t),
-            trigger: document.getElementById('action-trigger').value,
-            triggerValue: document.getElementById('action-trigger-value').value.trim(),
-            type: document.getElementById('action-type').value,
-            prompt: document.getElementById('action-prompt').value.trim()
-        };
-        
-        if (!newAction.name) {
-            alert('Please enter an action name');
-            return;
-        }
-        
-        actions.push(newAction);
-        saveCustomActions();
-        renderActionsLibrary();
-        renderActionsList();
-        closeActionCreator();
-        alert('Action created!');
-    }
-    
-    function deleteAction(actionId) {
-        if (!confirm('Delete this action?')) return;
-        actions = actions.filter(a => a.id !== actionId);
-        saveCustomActions();
-        renderActionsLibrary();
-        renderActionsList();
-    }
-    
-    function openSettingsModal() {
-        if (!settingsModalInstance) {
-            settingsModalInstance = new bootstrap.Modal(document.getElementById('settingsModal'));
-        }
-        settingsModalInstance.show();
-    }
-    
-    // ==========================================
-    // MAIN APPLICATION
-    // ==========================================
-    
-    function init() {
-        loadTheme(); // Load theme first
-        setupEventListeners();
-        initializePredefinedActions();
-        loadWorkflows();
-        renderActionsList();
-        renderActionsLibrary();
-        renderWorkflowsSidebar();
-        loadSavedSettings();
-    }
-    
-    function setupEventListeners() {
-        // Navigation
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const page = e.currentTarget.getAttribute('data-page');
-                navigateToPage(page);
-            });
-        });
-        
-        // Upload
-        const uploadZone = document.getElementById('upload-zone');
-        const imageInput = document.getElementById('image-input');
-        
-        uploadZone.addEventListener('click', () => imageInput.click());
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) {
-                handleImageUpload(e.dataTransfer.files[0]);
-            }
-        });
-        
-        imageInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleImageUpload(e.target.files[0]);
-            }
-        });
-        
-        document.getElementById('clear-image').addEventListener('click', clearImage);
-        document.getElementById('extract-btn').addEventListener('click', processScreenshot);
-        document.getElementById('run-actions-btn').addEventListener('click', runSelectedActions);
-        
-        // Filters
-        document.querySelectorAll('.filter-chip').forEach(chip => {
-            chip.addEventListener('click', (e) => {
-                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-                e.target.classList.add('active');
-                renderActionsList(e.target.dataset.filter);
-            });
-        });
-        
-        document.getElementById('action-search').addEventListener('input', (e) => {
-            renderActionsList(document.querySelector('.filter-chip.active')?.dataset.filter || 'all', e.target.value);
-        });
-        
-        // Workflow triage toggle
-        document.getElementById('wf-enable-triage').addEventListener('change', (e) => {
-            document.getElementById('triage-config').style.display = e.target.checked ? 'block' : 'none';
-        });
-        
-        // Settings
-        document.getElementById('save-api-key-btn').addEventListener('click', saveApiKey);
-        document.getElementById('test-api-btn').addEventListener('click', testApiConnection);
-        document.getElementById('fetch-models-btn').addEventListener('click', fetchModels);
-        
-        const tempSlider = document.getElementById('temperature-slider');
-        tempSlider.addEventListener('input', (e) => {
-            document.getElementById('temp-value').textContent = e.target.value;
-        });
-        
-        document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
-    }
-    
-    function navigateToPage(pageName) {
-        document.querySelectorAll('.page-content').forEach(page => page.classList.remove('active'));
-        document.getElementById(`${pageName}-page`).classList.add('active');
-        
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('data-page') === pageName) {
-                link.classList.add('active');
-            }
-        });
-    }
-    
-    function handleImageUpload(file) {
-        if (!file.type.startsWith('image/')) {
-            alert('Please upload a valid image file');
-            return;
-        }
-        
-        currentImageFilename = file.name;
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            currentImage = { data: e.target.result, filename: file.name };
-            document.getElementById('preview-img').src = currentImage.data;
-            document.getElementById('image-preview').style.display = 'block';
-            document.getElementById('extract-btn').disabled = false;
-            
-            // Clear previous results
-            OCRModule.clearText();
-            document.getElementById('extracted-text').innerHTML = '<p class="text-center">Click "Extract Text" to begin.</p>';
-            document.getElementById('triage-info').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    function clearImage() {
-        document.getElementById('image-preview').style.display = 'none';
-        document.getElementById('image-input').value = '';
-        document.getElementById('extract-btn').disabled = false;
-        document.getElementById('triage-info').style.display = 'none';
-        document.getElementById('code-detection').style.display = 'none';
-        OCRModule.clearText();
-        
-        // Switch back to upload tab
-        new bootstrap.Tab(document.getElementById('upload-tab')).show();
-    }
-    
-    async function processScreenshot() {
-        const fileInput = document.getElementById('image-input');
-        if (!fileInput.files[0] || !SettingsModule.isConfigured()) {
-            alert('Please configure API key in Settings first!');
-            openSettingsModal();
-            return;
-        }
-        
-        const progressDiv = document.getElementById('ocr-progress');
-        const extractBtn = document.getElementById('extract-btn');
-        
-        try {
-            progressDiv.style.display = 'block';
-            extractBtn.disabled = true;
-            extractBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
-            // OCR
-            extractedText = await OCRModule.extractText(fileInput.files[0], (progress) => {
-                document.getElementById('progress-bar').style.width = `${progress}%`;
-                document.getElementById('progress-percent').textContent = `${progress}%`;
-            });
-            
-            // Switch to extracted text tab
-            new bootstrap.Tab(document.getElementById('extracted-tab')).show();
-            
-            // Display text
-            document.getElementById('extracted-text').innerHTML = `<pre style="margin: 0;">${escapeHtml(extractedText)}</pre>`;
-            
-            // Only run triage if current workflow has it enabled
-            // For now, we don't run triage in quick mode without a workflow
-            // Detect codes
-            const codes = detectProvisioningCodes(extractedText);
-            if (codes.length > 0) {
-                displayProvisioningCodes(codes);
-                // Switch to results tab to show codes
-                new bootstrap.Tab(document.getElementById('results-tab')).show();
-            }
-            
-        } catch (error) {
-            alert('Error: ' + error.message);
-        } finally {
-            progressDiv.style.display = 'none';
-            extractBtn.disabled = false;
-            extractBtn.innerHTML = '<i class="fas fa-magic"></i> Extract Text (OCR)';
-        }
-    }
-    
-    function displayTriageResult(result) {
-        const severityColors = {
-            CRITICAL: 'danger',
-            HIGH: 'warning',
-            MEDIUM: 'primary',
-            LOW: 'info'
-        };
-        
-        // Only show device if detected from content
-        const device = detectDeviceFromContent(extractedText);
-        if (device) {
-            document.getElementById('device-info').innerHTML = `
-                <span class="device-badge"><i class="fas fa-tv me-2"></i>${device}</span>
-                <small style="color: rgba(255,255,255,0.7);">Detected from content</small>
-            `;
-        }
-        
-        document.getElementById('category-info').innerHTML = `
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <span class="badge bg-${severityColors[result.severity] || 'secondary'}">${result.severity}</span>
-                <span class="badge bg-info">${result.category}</span>
-                <span style="color: white;">${result.summary}</span>
-            </div>
-        `;
-        
-        document.getElementById('triage-info').style.display = 'block';
-    }
-    
-    function displayProvisioningCodes(codes) {
-        document.getElementById('detected-codes').innerHTML = codes.map(c => `
-            <div style="background: rgba(255,255,255,0.1); padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
-                <strong style="color: white;">${c.system}:</strong>
-                <code style="background: rgba(0,0,0,0.3); padding: 0.25rem 0.5rem; border-radius: 4px; color: var(--success-color); margin-left: 0.5rem;">${c.code}</code>
-                <button class="btn btn-sm btn-primary ms-2" onclick="copyToClipboard('${c.code}')">
-                    <i class="fas fa-copy"></i>
-                </button>
-            </div>
-        `).join('');
-        document.getElementById('code-detection').style.display = 'block';
-    }
-    
-    async function runSelectedActions() {
-        if (!extractedText || selectedActions.length === 0) {
-            alert('No actions selected or no text extracted!');
-            return;
-        }
-        
-        const resultsPanel = document.getElementById('analysis-results');
-        const results = [];
-        
-        // Switch to results tab
-        new bootstrap.Tab(document.getElementById('results-tab')).show();
-        
-        for (let i = 0; i < selectedActions.length; i++) {
-            const action = actions.find(a => a.id === selectedActions[i]);
-            if (!action) continue;
-            
-            resultsPanel.innerHTML = `<div style="color: white;"><i class="fas fa-spinner fa-spin me-2"></i>Running ${action.name}...</div>`;
-            
-            try {
-                const result = await executeAction(action, extractedText);
-                results.push({ action: action.name, result, success: true });
-            } catch (error) {
-                results.push({ action: action.name, result: error.message, success: false });
-            }
-        }
-        
-        displayResults(results);
-    }
-    
-    function displayResults(results) {
-        const panel = document.getElementById('analysis-results');
-        panel.innerHTML = results.map(r => `
-            <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.2);">
-                <h6 style="color: ${r.success ? 'var(--success-color)' : 'var(--danger-color)'}; margin-bottom: 0.75rem;">
-                    <i class="fas fa-${r.success ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${r.action}
-                </h6>
-                <pre style="white-space: pre-wrap; margin: 0;">${escapeHtml(r.result)}</pre>
-            </div>
-        `).join('');
-    }
-    
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => alert('Copied!'));
-    }
-    
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    // Settings functions (using your working code)
-    function saveApiKey() {
-        const apiKey = document.getElementById('api-key-input').value.trim();
-        if (!apiKey) {
-            alert('Please enter an API key');
-            return;
-        }
-        SettingsModule.saveApiKey(apiKey);
-        showStatus('API key saved successfully!', 'success');
-    }
-    
-    async function testApiConnection() {
-        const btn = document.getElementById('test-api-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
-        
-        try {
-            const result = await LLMModule.testConnection();
-            showStatus(result.message, result.success ? 'success' : 'error');
-        } catch (error) {
-            showStatus('Connection failed: ' + error.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle"></i> Test Connection';
-        }
-    }
-    
-    async function fetchModels() {
-        const btn = document.getElementById('fetch-models-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
-        
-        try {
-            const models = await LLMModule.fetchModels();
-            renderModels(models);
-            showStatus(`${models.length} models loaded successfully!`, 'success');
-        } catch (error) {
-            showStatus('Failed to fetch models: ' + error.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-sync"></i> Fetch Available Models';
-        }
-    }
-    
-    function renderModels(models) {
-        const container = document.getElementById('models-list');
-        const currentModel = SettingsModule.getModel();
-        
-        container.innerHTML = models.map(model => {
-            const isSelected = model.id === currentModel;
-            return `
-                <div class="model-card ${isSelected ? 'selected' : ''}" onclick="selectModel('${model.id}')">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong>${model.id}</strong>
-                        ${isSelected ? '<span class="badge bg-success">Active</span>' : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function selectModel(modelId) {
-        SettingsModule.saveModel(modelId);
-        showStatus('Model selected successfully!', 'success');
-        displayConfig();
-        LLMModule.fetchModels().then(models => renderModels(models));
-    }
-    
-    function saveSettings() {
-        const temperature = parseFloat(document.getElementById('temperature-slider').value);
-        const maxTokens = parseInt(document.getElementById('max-tokens-input').value);
-        const systemPrompt = document.getElementById('system-prompt-input').value.trim();
-        
-        SettingsModule.saveTemperature(temperature);
-        SettingsModule.saveMaxTokens(maxTokens);
-        SettingsModule.saveSystemPrompt(systemPrompt);
-        
-        displayConfig();
-        showStatus('Settings saved successfully!', 'success');
-    }
-    
-    function displayConfig() {
-        const settings = SettingsModule.getAllSettings();
-        document.getElementById('config-preview').innerHTML = `
-            <div><strong>Model:</strong> ${settings.model}</div>
-            <div><strong>Temperature:</strong> ${settings.temperature}</div>
-            <div><strong>Max Tokens:</strong> ${settings.maxTokens}</div>
-            <div class="mt-2"><strong>System Prompt:</strong></div>
-            <pre style="font-size: 0.85rem; margin: 0;">${escapeHtml(settings.systemPrompt)}</pre>
-        `;
-    }
-    
-    function loadSavedSettings() {
-        const settings = SettingsModule.getAllSettings();
-        
-        if (settings.apiKey) {
-            document.getElementById('api-key-input').value = settings.apiKey;
-        }
-        
-        document.getElementById('temperature-slider').value = settings.temperature;
-        document.getElementById('temp-value').textContent = settings.temperature;
-        document.getElementById('max-tokens-input').value = settings.maxTokens;
-        document.getElementById('system-prompt-input').value = settings.systemPrompt;
-        
-        displayConfig();
-    }
-    
-    function showStatus(message, type = 'info') {
-        const statusDiv = document.getElementById('api-status');
-        const alertClass = {
-            'success': 'alert-success',
-            'error': 'alert-danger',
-            'info': 'alert-info'
-        }[type] || 'alert-info';
-        
-        statusDiv.innerHTML = `
-            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
-    }
-    
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', init);
-    
-    </script>
-</body>
-</html>
+            <h6 class="mt-3">Selected (${AppState.selectedActions.length})</h6>
+            ${AppState.selectedActions.map(id => {
+                const action = AppState.actions.find(a => a.id === id);
+  
