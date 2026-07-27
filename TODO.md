@@ -1,334 +1,601 @@
-# SnapOCR 2.0 TODO
-> Consolidated improvement roadmap based on comprehensive code review.
->
-> Goal: Production-ready, enterprise-grade OCR + AI workflow platform.
----
-# P0 — Critical (Fix Before Release)
-## State Management
-- [ ] Remove duplicate state variables (`extractedText`, `currentImage`)
-- [ ] Choose a single source of truth (prefer `OCRModule` or centralized `AppState`)
-- [ ] Eliminate global state duplication
-- [ ] Add proper state reset methods
----
-## OCR
-- [ ] Disable **Extract Text** button after `clearImage()`
-- [ ] Re-enable only after a valid image is selected
-- [ ] Remove API-key requirement for OCR extraction
-- [ ] Allow OCR to run completely offline
-- [ ] Show API warning only when AI features are used
----
-## Master Triage
-- [ ] Connect Master Triage to Quick Mode
-- [ ] Actually call `displayTriageResult()`
-- [ ] Display detected:
-  - device
-  - severity
-  - category
-  - recommendations
-- [ ] Remove dead UI if triage disabled
----
-## Settings
-- [ ] Improve Bootstrap modal initialization
-- [ ] Use `bootstrap.Modal.getInstance()`
-- [ ] Handle missing modal element safely
-- [ ] Prevent initialization race conditions
----
-## Error Handling
-- [ ] Wrap `executeAction()` in try/catch
-- [ ] Improve OCR error handling
-- [ ] Improve workflow execution error handling
-- [ ] Improve model loading error handling
-- [ ] Improve Tesseract loading failures
-- [ ] Add graceful fallback messages
----
-## Theme Compatibility
-Replace all hardcoded colors with CSS variables.
-Replace:
-- [ ] `color:white`
-- [ ] `color:black`
-- [ ] `rgba(255,255,255,...)`
-With:
-- [ ] `--text-primary`
-- [ ] `--text-secondary`
-- [ ] `--success-color`
-- [ ] `--danger-color`
-Ensure:
-- [ ] Light mode readable
-- [ ] Dark mode readable
----
-# P1 — High Priority
-## Workflow Execution
-- [ ] Run workflows directly from Workflow Builder
-- [ ] Connect Quick Mode to saved workflows
-- [ ] Execute complete workflow instead of manually selecting actions
-- [ ] Preserve execution order
-- [ ] Continue / stop on error options
-- [ ] Cancellation support (AbortController)
----
-## Input Validation
-Validate:
-- [ ] Workflow names
-- [ ] Action names
-- [ ] Descriptions
-- [ ] Regex patterns
-- [ ] Empty workflows
-- [ ] Duplicate names
-- [ ] Missing prompts
----
-## Security
-- [ ] Escape all HTML output
-- [ ] Sanitize rendered AI responses
-- [ ] Validate regex before execution
-- [ ] Prevent XSS in result rendering
----
-## OCR Worker
-- [ ] Reuse Tesseract worker
-- [ ] Do not recreate worker every extraction
-- [ ] Cleanup on page unload
-- [ ] Cleanup on failures
----
-## Model Handling
-- [ ] Cache fetched model list
-- [ ] Avoid unnecessary API reload after model selection
----
-## Manual Text Input
-- [ ] Add textarea for pasted text
-- [ ] Allow AI analysis without OCR
-- [ ] Support mixed OCR/manual workflows
----
-## Replace Alerts
-Replace:
-- [ ] alert()
-- [ ] confirm()
-With:
-- [ ] Toast notifications
-- [ ] Confirmation dialogs
-- [ ] Non-blocking UI
----
-# P2 — UX Improvements
-## Workflow Builder
-- [ ] Drag-and-drop action ordering
-- [ ] Move Up / Down buttons
-- [ ] Edit custom actions
-- [ ] Duplicate actions
-- [ ] Clone workflows
-- [ ] Delete confirmation
----
-## Execution History
-- [ ] Store execution history
-- [ ] Timestamp runs
-- [ ] Show previous OCR text
-- [ ] Show previous AI results
-- [ ] Clear history option
----
-## Export / Import
-Support:
-- [ ] Export workflows
-- [ ] Import workflows
-- [ ] Export custom actions
-- [ ] Version validation
-- [ ] Merge vs Replace options
----
-## Undo / Redo
-- [ ] Workflow history
-- [ ] Ctrl+Z
-- [ ] Ctrl+Shift+Z
-- [ ] History limit
----
-## Search
-- [ ] Debounce action search
-- [ ] Cache filters
-- [ ] Faster rendering
----
-## Results Rendering
-Instead of raw `<pre>`:
-- [ ] Render markdown
-- [ ] Headers
-- [ ] Lists
-- [ ] Bold
-- [ ] Italics
-- [ ] Code blocks
----
-## Loading States
-- [ ] Skeleton loaders
-- [ ] Better OCR progress
-- [ ] Better AI progress
-- [ ] Animated placeholders
----
-# P2 — Accessibility
-## Keyboard Support
-- [ ] Enter activates actions
-- [ ] Space toggles selections
-- [ ] Escape closes dialogs
-- [ ] Tab navigation improvements
----
-## ARIA
-Add:
-- [ ] aria-label
-- [ ] aria-pressed
-- [ ] aria-checked
-- [ ] role attributes
----
-## Focus Management
-- [ ] Focus trap in modals
-- [ ] Focus after tab switches
-- [ ] Focus restoration
----
-# P2 — Mobile
-Improve layouts for:
-- [ ] Pipeline
-- [ ] Cards
-- [ ] Buttons
-- [ ] Navbar
-- [ ] Upload area
-- [ ] Settings button
-- [ ] Modal spacing
----
-# P2 — Visual Polish
-## Hero Section
-- [ ] Gradient background
-- [ ] Animated grid
-- [ ] Better hierarchy
-- [ ] Product branding
----
-## Upload Zone
-- [ ] Hover animation
-- [ ] Success state
-- [ ] Better drag feedback
-- [ ] Image preview overlay
----
-## Action Library
-- [ ] Action icons
-- [ ] Category colors
-- [ ] Better hierarchy
-- [ ] Status indicators
----
-## Dynamic UI
-Add:
-- [ ] Smooth transitions
-- [ ] Animated progress
-- [ ] Tab animations
-- [ ] Loading effects
-- [ ] Micro-interactions
----
-# P3 — Performance
-## Lazy Loading
-- [ ] Load Tesseract on demand
-- [ ] Lazy-load heavy libraries
-- [ ] Reduce initial bundle size
----
-## Rendering
-- [ ] Reduce unnecessary DOM updates
-- [ ] Optimize search rendering
-- [ ] Cache repeated lookups
----
-## HTML Escaping
-- [ ] Replace DOM-based escaping with regex implementation
----
-# P3 — Feature Enhancements
-## Workflow Improvements
-- [ ] Batch screenshot processing
-- [ ] Workflow scheduling
-- [ ] Workflow variables
-- [ ] Conditional branching
-- [ ] Retry policies
----
-## Action Improvements
-- [ ] Edit actions
-- [ ] Duplicate actions
-- [ ] Categories
-- [ ] Favorites
-- [ ] Templates
----
-## Device Detection
-- [ ] Detect from filename
-- [ ] Detect from OCR
-- [ ] Detect from metadata
-- [ ] Merge confidence scores
----
-## Browser Extension
-- [ ] Right-click screenshot
-- [ ] Send directly to SnapOCR
-- [ ] Analyze instantly
----
-## Audit Log
-- [ ] Full execution log
-- [ ] Searchable history
-- [ ] Export reports
----
-## Analytics (Optional)
-- [ ] Usage metrics
-- [ ] Workflow statistics
-- [ ] Error frequency
----
-# Testing
-## Unit Tests
-Cover:
-- [ ] Device detection
-- [ ] Provisioning detection
-- [ ] Regex validation
-- [ ] OCR helpers
-- [ ] Workflow execution
-- [ ] State management
----
-## Integration Tests
-- [ ] OCR pipeline
-- [ ] AI pipeline
-- [ ] Workflow execution
-- [ ] Import/export
----
-## Smoke Tests
-- [ ] Startup
-- [ ] Settings
-- [ ] OCR
-- [ ] AI
-- [ ] Workflow save/load
----
-# Documentation
-## README
-- [ ] Add screenshots
-- [ ] Explain OCR vs AI requirements
-- [ ] Update architecture diagram
-- [ ] Document Quick Mode workflow execution
-- [ ] Document Master Triage behavior
-- [ ] Update roadmap
----
-# Nice-to-Have
-- [ ] Batch OCR
-- [ ] Browser extension
-- [ ] Workflow marketplace
-- [ ] Plugin system
-- [ ] Cloud sync
-- [ ] Team collaboration
-- [ ] Multi-language OCR
-- [ ] Offline AI support
-- [ ] Auto-update mechanism
----
-# Release Goals
-## Version 2.0.1
-- Critical bug fixes
-- State cleanup
-- Theme fixes
-- Better error handling
----
-## Version 2.1
-- Workflow execution
-- Manual text input
-- Export/import
-- Accessibility
-- Performance improvements
----
-## Version 2.2
-- Undo/Redo
-- History
-- Batch processing
-- Visual redesign
----
-## Version 3.0
-- Browser extension
-- Plugin architecture
-- Team collaboration
-- Cloud synchronization
-- Enterprise features
+SnapOps.
 
-This roadmap consolidates roughly 60–70 individual review items into ~15 major workstreams, removes duplicated recommendations (e.g., Tesseract worker reuse, debounce, accessibility, export/import, state management), and organizes them into a practical release plan. It should serve as a clean engineering backlog rather than a list of isolated review comments.
+1. SNAPOPS_ARCHITECTURE.md — target architecture and system boundaries
+2. SNAPOPS_REFACTOR_PLAN.md — step-by-step migration strategy from current codebase
+3. SNAPOPS_ROADMAP.md — product roadmap replacing the old TODO mindset
+
+You can put these directly into a /docs folder.
+
+⸻
+
+SnapOps Architecture
+
+Vision
+
+SnapOps is an AI-powered operations intelligence platform for analyzing screenshots, device states, logs, and operational signals.
+
+OCR is only one input method.
+
+The platform goal:
+
+Input
+ |
+ v
+Knowledge Extraction
+ |
+ v
+Context Understanding
+ |
+ v
+AI Triage
+ |
+ v
+Workflow Automation
+ |
+ v
+Action Execution
+ |
+ v
+Operational History
+
+⸻
+
+Core Architecture
+
+High Level
+
+                 SnapOps
+                    |
+        +-----------+-----------+
+        |                       |
+   Input Layer             User Interface
+        |                       |
+        v                       v
++---------------------------------------+
+|          Intelligence Layer           |
++---------------------------------------+
+ OCR Engine
+ Vision Engine
+ Pattern Engine
+ Context Engine
+ AI Engine
+ Triage Engine
+                    |
+                    v
++---------------------------------------+
+|          Automation Layer             |
++---------------------------------------+
+ Workflow Engine
+ Action Engine
+ Rule Engine
+ Execution Queue
+                    |
+                    v
++---------------------------------------+
+|          Platform Layer               |
++---------------------------------------+
+ Storage
+ Settings
+ History
+ Logging
+ Integrations
+
+⸻
+
+Core Concepts
+
+Context Object
+
+The most important architectural change.
+
+Never pass raw OCR text through the system.
+
+Instead:
+
+{
+    id:"",
+    timestamp:"",
+    source:{
+        type:"screenshot",
+        filename:"",
+    },
+    device:{
+        manufacturer:"",
+        model:"",
+        confidence:0
+    },
+    screen:{
+        category:"",
+        severity:"",
+    },
+    extracted:{
+        text:"",
+        codes:[],
+        urls:[],
+        identifiers:[]
+    },
+    ai:{
+        summary:"",
+        recommendations:[]
+    },
+    confidence:{
+        overall:0
+    }
+}
+
+Everything operates on Context.
+
+⸻
+
+Module Structure
+
+Recommended future structure:
+
+src/
+├── app/
+│   ├── AppState.js
+│   ├── EventBus.js
+│   └── Router.js
+│
+├── engines/
+│   ├── OCREngine.js
+│   ├── AIEngine.js
+│   ├── TriageEngine.js
+│   ├── ContextEngine.js
+│   └── PatternEngine.js
+│
+├── automation/
+│   ├── WorkflowEngine.js
+│   ├── ActionEngine.js
+│   └── RuleEngine.js
+│
+├── storage/
+│   ├── Storage.js
+│   ├── LocalStorage.js
+│   └── Database.js
+│
+├── ui/
+│   ├── Components
+│   ├── Views
+│   └── Modals
+│
+└── services/
+    ├── NotificationService.js
+    ├── LoggingService.js
+    └── IntegrationService.js
+
+⸻
+
+Event Driven Model
+
+Modules should communicate through events.
+
+Example:
+
+OCR_COMPLETE
+      |
+      v
+CONTEXT_CREATED
+      |
+      v
+TRIAGE_COMPLETE
+      |
+      v
+WORKFLOW_SELECTED
+      |
+      v
+ACTION_STARTED
+      |
+      v
+ACTION_COMPLETED
+
+Benefits:
+
+* Easier testing
+* Plugin support
+* Less coupling
+* Better debugging
+
+⸻
+
+Workflow Model
+
+A workflow:
+
+{
+"name":"Samsung Provisioning",
+"trigger":{
+"type":"category",
+"value":"PROVISIONING_SCREEN"
+},
+"steps":[
+{
+"action":"extract_code"
+},
+{
+"action":"validate_device"
+},
+{
+"action":"generate_report"
+}
+]
+}
+
+⸻
+
+Action Model
+
+Actions become reusable components.
+
+Example:
+
+{
+"id":"extract_code",
+"name":"Extract Provisioning Code",
+"type":"extract",
+"inputs":[
+"context"
+],
+"outputs":[
+"codes"
+],
+"timeout":5000
+}
+
+⸻
+
+Long Term Vision
+
+SnapOps should support:
+
+* screenshots
+* cameras
+* browser extension
+* log files
+* APIs
+* device telemetry
+* emails
+* cloud events
+
+All inputs become Context.
+
+All automation works on Context.
+
+⸻
+
+SnapOps Refactor Plan
+
+Objective
+
+Transform the current SnapOCR single-page application into a modular AI operations platform.
+
+⸻
+
+Phase 1 — Stabilization
+
+State Management
+
+Current:
+
+Global variables
++
+Module state
++
+DOM state
+
+Target:
+
+AppState
+ |
+ +-- OCR State
+ +-- Workflow State
+ +-- Settings State
+ +-- Execution State
+
+Tasks:
+
+* Create AppState module
+* Move extractedText into state
+* Move currentImage into state
+* Remove duplicate variables
+* Add reset functions
+* Add state change events
+
+⸻
+
+Phase 2 — Extract Engines
+
+Move logic away from UI.
+
+Create:
+
+OCREngine
+
+Responsibilities:
+
+* Load Tesseract
+* Process images
+* Return OCR result
+* Confidence scores
+
+AIEngine
+
+Responsibilities:
+
+* Model communication
+* Prompt handling
+* Streaming
+* Errors
+* Token usage
+
+PatternEngine
+
+Responsibilities:
+
+* Regex detection
+* Device IDs
+* Codes
+* URLs
+* Identifiers
+
+TriageEngine
+
+Responsibilities:
+
+Input:
+
+Context
+
+Output:
+
+Classification
+Recommendations
+Workflow suggestion
+
+⸻
+
+Phase 3 — Workflow System
+
+Replace manual action selection.
+
+Current:
+
+User selects actions
+
+Future:
+
+Context
+↓
+Triage
+↓
+Recommended Workflow
+↓
+Execute
+
+Tasks:
+
+* WorkflowEngine
+* ActionEngine
+* Execution queue
+* Retry handling
+* AbortController support
+* Execution logs
+
+⸻
+
+Phase 4 — Storage Layer
+
+Replace direct localStorage usage.
+
+Create:
+
+Storage.save()
+Storage.load()
+Storage.delete()
+
+Initial:
+
+LocalStorage
+
+Future:
+
+IndexedDB
+Cloud Database
+Enterprise Storage
+
+⸻
+
+Phase 5 — UI Refactor
+
+Split HTML into components.
+
+Target:
+
+Dashboard
+ScreenshotPanel
+ContextPanel
+WorkflowPanel
+ExecutionPanel
+HistoryPanel
+
+⸻
+
+Phase 6 — Security
+
+Implement:
+
+* HTML sanitization
+* Input validation
+* Regex validation
+* API key protection
+* Secure storage strategy
+* Permission model
+
+⸻
+
+Migration Rule
+
+Do not rewrite everything.
+
+Migrate incrementally:
+
+Old Module
+      |
+      v
+New Interface
+      |
+      v
+Replace Implementation
+
+Keep the application working after every step.
+
+⸻
+
+First Refactor Tasks
+
+Recommended order:
+
+1. Create AppState
+2. Create EventBus
+3. Move OCR logic
+4. Move AI logic
+5. Create Context object
+6. Create WorkflowEngine
+7. Connect UI to engines
+8. Remove old globals
+
+This order gives maximum stability.
+
+⸻
+
+SnapOps Product Roadmap
+
+Mission
+
+Create an intelligent operations platform that understands device states and automatically performs troubleshooting workflows.
+
+⸻
+
+Version 2.0 — Foundation
+
+Goal:
+
+Stable architecture.
+
+Features:
+
+* Modular architecture
+* Central state management
+* Offline OCR
+* Better error handling
+* Improved themes
+* Secure settings
+* Clean workflow foundation
+
+⸻
+
+Version 2.1 — Intelligence Layer
+
+Goal:
+
+Understand operational situations.
+
+Features:
+
+* Context Engine
+* Master Triage
+* Device detection
+* Severity classification
+* Confidence scoring
+* Pattern recognition
+* AI recommendations
+
+⸻
+
+Version 2.2 — Automation Platform
+
+Goal:
+
+Automate troubleshooting.
+
+Features:
+
+* Workflow execution
+* Conditional actions
+* Action dependencies
+* Retry policies
+* Execution history
+* Workflow templates
+* Import/export
+
+⸻
+
+Version 3.0 — Operations Platform
+
+Goal:
+
+Manage real environments.
+
+Features:
+
+* Device fleets
+* Dashboards
+* Audit logs
+* Reports
+* Integrations
+* Notifications
+* Browser extension
+
+⸻
+
+Version 4.0 — Enterprise
+
+Goal:
+
+Multi-user operational intelligence.
+
+Features:
+
+* Teams
+* Permissions
+* Cloud synchronization
+* Plugin ecosystem
+* Marketplace
+* Organization management
+
+⸻
+
+Core Product Principle
+
+SnapOps should evolve from:
+
+Screenshot OCR Tool
+
+into:
+
+AI Operations Intelligence Platform
+
+OCR is the sensor.
+
+AI is the reasoning layer.
+
+Workflows are the automation layer.
+
+⸻
+
+also rename the repository structure and title and all old name related now:
+
+SnapOCR/
+
+to:
+
+SnapOps/
+
+and update:
+
+* HTML title
+* localStorage prefixes (snapocr_ → snapops_)
+* module names
+* README
+* branding assets
+* future package name
